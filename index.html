@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Commenteers — comment on anything</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --surface-2: #f1f0ed;
+    --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.18);
+    --text: #1a1a18; --text-2: #5a5a56; --text-3: #9a9a94;
+    --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #0F6E56; --teal-deeper: #085041;
+    --coral: #D85A30; --coral-light: #FAECE7; --coral-dark: #993C1D; --coral-deeper: #712B13;
+    --amber: #BA7517; --amber-light: #FAEEDA; --amber-dark: #854F0B;
+    --purple: #534AB7;
+    --radius: 8px; --radius-lg: 12px; --radius-xl: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(247,247,245,0.92); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 17px; font-weight: 500; letter-spacing: -0.3px; cursor: pointer; }
+  .logo span { color: var(--teal); }
+  .nav-links { display: flex; gap: 1.5rem; font-size: 14px; color: var(--text-2); }
+  .nav-links a { cursor: pointer; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-actions { display: flex; gap: 8px; align-items: center; }
+  .btn { cursor: pointer; font-family: inherit; font-size: 13px; border-radius: var(--radius); transition: all 0.15s; }
+  .btn-ghost { padding: 6px 14px; border: 0.5px solid var(--border-strong); background: transparent; color: var(--text); }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-primary { padding: 6px 16px; border: none; background: var(--teal); color: #fff; font-weight: 500; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .avatar-pill { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border: 0.5px solid var(--border); border-radius: 999px; background: var(--surface); cursor: pointer; transition: background 0.15s; position: relative; }
+  .avatar-pill:hover { background: var(--surface-2); }
+  .avatar-circle { width: 26px; height: 26px; border-radius: 50%; background: var(--teal-light); color: var(--teal-deeper); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+  .avatar-pill .name { font-size: 13px; }
+  .user-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 6px; min-width: 160px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .user-menu.open { display: block; }
+  .user-menu button { width: 100%; padding: 8px 12px; text-align: left; background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text-2); border-radius: var(--radius); font-family: inherit; display: flex; align-items: center; gap: 8px; }
+  .user-menu button:hover { background: var(--surface-2); color: var(--text); }
+  .user-menu button.danger { color: var(--coral-dark); }
+  .user-menu button.danger:hover { background: var(--coral-light); }
+
+  .page { max-width: 720px; margin: 0 auto; padding: 0 1.25rem 5rem; }
+  .hero { text-align: center; padding: 5rem 0 3.5rem; }
+  .hero h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 500; letter-spacing: -0.6px; line-height: 1.15; margin-bottom: 1.1rem; }
+  .hero p { font-size: 17px; color: var(--text-2); max-width: 460px; margin: 0 auto 2.25rem; line-height: 1.65; }
+  .url-box { display: flex; gap: 8px; max-width: 580px; margin: 0 auto; }
+  .url-box input { flex: 1; height: 48px; padding: 0 16px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .url-box input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-light); }
+  .url-box input::placeholder { color: var(--text-3); }
+  .url-box button { height: 48px; padding: 0 22px; border: none; border-radius: var(--radius); background: var(--teal); color: #fff; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; white-space: nowrap; transition: background 0.15s; display: flex; align-items: center; gap: 6px; }
+  .url-box button:hover { background: var(--teal-dark); }
+  .pills { display: flex; gap: 8px; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+  .pill { font-size: 12px; padding: 5px 14px; border-radius: 999px; border: 0.5px solid var(--border); color: var(--text-2); background: var(--surface); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .pill:hover { border-color: var(--teal); color: var(--teal-dark); background: var(--teal-light); }
+  .nostr-bar { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin: 2.5rem 0; }
+  .nostr-bar i { font-size: 22px; color: var(--teal); flex-shrink: 0; }
+  .nostr-bar strong { font-size: 14px; font-weight: 500; }
+  .nostr-bar p { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+  .how { padding: 3rem 0; border-top: 0.5px solid var(--border); margin-top: 1rem; }
+  .how h2 { font-size: 22px; font-weight: 500; margin-bottom: 1.75rem; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
+  @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+  .step-num { font-size: 12px; font-weight: 500; color: var(--teal); letter-spacing: 0.5px; margin-bottom: 8px; }
+  .step h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .step p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+  .thread { display: none; }
+  .thread.active { display: block; padding-top: 1.5rem; }
+  .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); background: none; border: none; cursor: pointer; font-family: inherit; margin-bottom: 1.25rem; padding: 0; transition: color 0.15s; }
+  .back-btn:hover { color: var(--text); }
+  .thread-header { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .thread-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--surface-2); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .source-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); margin-bottom: 3px; }
+  .thread-title { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .thread-url { font-size: 12px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .top-takes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.75rem; }
+  @media (max-width: 500px) { .top-takes { grid-template-columns: 1fr; } }
+  .take { padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 0.5px solid; }
+  .take.pos { background: var(--teal-light); border-color: #5DCAA5; }
+  .take.neg { background: var(--coral-light); border-color: #F0997B; }
+  .take-label { font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+  .take.pos .take-label { color: var(--teal-dark); }
+  .take.neg .take-label { color: var(--coral-dark); }
+  .take-text { font-size: 14px; line-height: 1.55; }
+  .take.pos .take-text { color: var(--teal-deeper); }
+  .take.neg .take-text { color: var(--coral-deeper); }
+  .take-meta { font-size: 12px; margin-top: 8px; }
+  .take.pos .take-meta { color: var(--teal-dark); }
+  .take.neg .take-meta { color: var(--coral-dark); }
+  .take-empty { font-size: 13px; font-style: italic; }
+  .take.pos .take-empty { color: var(--teal-dark); }
+  .take.neg .take-empty { color: var(--coral-dark); }
+
+  .comment-input-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .ci-label { font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+  .comment-input-box textarea { width: 100%; border: 0.5px solid var(--border-strong); border-radius: var(--radius); padding: 10px 12px; font-size: 14px; font-family: inherit; resize: none; background: var(--surface-2); color: var(--text); outline: none; line-height: 1.55; transition: border-color 0.15s, box-shadow 0.15s; }
+  .comment-input-box textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-light); }
+  .comment-input-box textarea::placeholder { color: var(--text-3); }
+  .ci-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; flex-wrap: wrap; gap: 8px; }
+  .sentiment-toggle { display: flex; gap: 6px; }
+  .st-btn { font-size: 12px; padding: 5px 11px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: transparent; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.15s; }
+  .st-btn.pos.active { background: var(--teal-light); border-color: #5DCAA5; color: var(--teal-deeper); }
+  .st-btn.neg.active { background: var(--coral-light); border-color: #F0997B; color: var(--coral-deeper); }
+  .post-btn { font-size: 13px; padding: 7px 18px; border: none; border-radius: var(--radius); background: var(--teal); color: #fff; cursor: pointer; font-weight: 500; font-family: inherit; transition: background 0.15s; }
+  .post-btn:hover { background: var(--teal-dark); }
+  .post-btn:disabled { background: var(--text-3); cursor: not-allowed; }
+
+  .sign-prompt { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .sign-prompt p { font-size: 14px; color: var(--text-2); }
+
+  .comments-header { font-size: 13px; color: var(--text-3); border-bottom: 0.5px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 0; }
+  .comment { display: flex; gap: 12px; padding: 1rem 0; border-bottom: 0.5px solid var(--border); }
+  .comment:last-child { border-bottom: none; }
+  .av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; background: var(--teal-light); color: var(--teal-deeper); }
+  .comment-body { flex: 1; min-width: 0; }
+  .comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
+  .comment-author { font-size: 13px; font-weight: 500; }
+  .comment-time { font-size: 12px; color: var(--text-3); }
+  .sbadge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+  .sbadge.pos { background: var(--teal-light); color: var(--teal-deeper); }
+  .sbadge.neg { background: var(--coral-light); color: var(--coral-deeper); }
+  .comment-text { font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+  .vote-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .vote-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: transparent; cursor: pointer; font-size: 12px; color: var(--text-2); font-family: inherit; transition: all 0.15s; }
+  .vote-btn:hover { background: var(--surface-2); }
+  .vote-btn.up-active { background: var(--teal-light); border-color: #5DCAA5; color: var(--teal-deeper); }
+  .vote-btn.down-active { background: var(--coral-light); border-color: #F0997B; color: var(--coral-deeper); }
+  .vote-count { font-size: 13px; font-weight: 500; color: var(--text-2); min-width: 20px; text-align: center; }
+  .vdivider { width: 1px; height: 18px; background: var(--border-strong); margin: 0 2px; }
+  .zap-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: var(--radius); border: 0.5px solid #EF9F27; background: transparent; cursor: pointer; font-size: 12px; color: #633806; font-family: inherit; transition: background 0.15s; }
+  .zap-btn:hover { background: var(--amber-light); }
+  .zap-btn.zapped { background: var(--amber-light); border-color: var(--amber); }
+  .zap-btn i { font-size: 13px; color: var(--amber); }
+  .comment-score { font-size: 11px; color: var(--text-3); margin-left: 4px; }
+
+  .loading-comments { padding: 2rem 0; text-align: center; color: var(--text-3); font-size: 14px; }
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--coral-dark); }
+
+  .overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.4); padding: 1rem; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-xl); border: 0.5px solid var(--border); padding: 2rem; width: 100%; max-width: 400px; position: relative; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 20px; font-weight: 500; margin-bottom: 5px; }
+  .modal-sub { font-size: 14px; color: var(--text-2); margin-bottom: 1.5rem; line-height: 1.5; }
+  .close-btn { position: absolute; top: 1rem; right: 1rem; width: 28px; height: 28px; border-radius: 50%; border: 0.5px solid var(--border); background: var(--surface-2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--text-2); transition: background 0.15s; }
+  .close-btn:hover { background: var(--border); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 5px; }
+  .field input { width: 100%; height: 42px; padding: 0 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .field input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-light); }
+  .field input::placeholder { color: var(--text-3); }
+  .modal-btn { width: 100%; height: 44px; border: none; border-radius: var(--radius); background: var(--teal); color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s; }
+  .modal-btn:hover { background: var(--teal-dark); }
+  .modal-btn:disabled { background: var(--text-3); cursor: not-allowed; }
+  .modal-footer { text-align: center; font-size: 13px; color: var(--text-2); margin-top: 14px; }
+  .modal-footer a { color: var(--teal); cursor: pointer; }
+  .modal-footer a:hover { text-decoration: underline; }
+  .auth-error { font-size: 13px; color: var(--coral-dark); background: var(--coral-light); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 12px; display: none; }
+  .auth-error.show { display: block; }
+  .success-check { width: 52px; height: 52px; border-radius: 50%; background: var(--teal-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 24px; color: var(--teal); }
+
+  .zap-modal { max-width: 360px; }
+  .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 1rem; }
+  .amt-btn { padding: 10px 4px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2); font-family: inherit; transition: all 0.15s; }
+  .amt-btn:hover { background: var(--surface-2); }
+  .amt-btn.selected { background: var(--amber-light); border-color: #EF9F27; color: #412402; }
+  .custom-row { display: flex; gap: 8px; margin-bottom: 1.25rem; align-items: center; }
+  .custom-row input { flex: 1; height: 38px; padding: 0 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-2); color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+  .custom-row input:focus { border-color: var(--amber); }
+  .custom-row span { font-size: 12px; color: var(--text-3); white-space: nowrap; }
+  .split-card { background: var(--surface-2); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 12px 14px; margin-bottom: 1.25rem; }
+  .split-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); margin-bottom: 10px; font-weight: 500; }
+  .split-bar { height: 8px; border-radius: 999px; overflow: hidden; display: flex; gap: 2px; margin-bottom: 12px; }
+  .split-seg { height: 100%; border-radius: 2px; }
+  .split-rows { display: flex; flex-direction: column; gap: 7px; }
+  .split-row { display: flex; align-items: center; justify-content: space-between; }
+  .split-row-left { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-2); }
+  .split-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .split-row-right { font-size: 13px; font-weight: 500; }
+  .split-row-right .sats-label { font-size: 11px; font-weight: 400; color: var(--text-3); margin-left: 4px; }
+  .split-total { border-top: 0.5px solid var(--border); margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; font-size: 13px; }
+  .split-total span:first-child { color: var(--text-3); }
+  .split-total span:last-child { font-weight: 500; }
+  .embed-note { font-size: 12px; color: var(--text-3); padding: 8px 12px; background: var(--surface-2); border-radius: var(--radius); border: 0.5px solid var(--border); line-height: 1.5; margin-bottom: 1.25rem; }
+  .zap-confirm { width: 100%; height: 44px; border: none; border-radius: var(--radius); background: var(--amber); color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; transition: background 0.15s; }
+  .zap-confirm:hover { background: var(--amber-dark); }
+  .zap-cancel { width: 100%; height: 38px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: transparent; color: var(--text-2); font-size: 13px; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .zap-cancel:hover { background: var(--surface-2); }
+  .zap-success { display: none; text-align: center; padding: 0.5rem 0; }
+  .zap-success.show { display: block; }
+  .zap-success-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--amber-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 24px; color: var(--amber); }
+  .zap-success h3 { font-size: 17px; font-weight: 500; margin-bottom: 6px; }
+  .zap-success p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+  .zap-split-summary { display: flex; justify-content: center; gap: 20px; margin-top: 18px; }
+  .zss-item { text-align: center; }
+  .zss-label { font-size: 11px; color: var(--text-3); margin-bottom: 3px; }
+  .zss-val { font-size: 14px; font-weight: 500; }
+  .footer { border-top: 0.5px solid var(--border); padding-top: 1.5rem; margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-3); flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo" onclick="goHome()">Comment<span>eers</span></div>
+  <div class="nav-links">
+    <a onclick="scrollHow()">How it works</a>
+    <a>Browse</a>
+  </div>
+  <div class="nav-actions" id="nav-actions">
+    <button class="btn btn-ghost" onclick="showModal('login')">Sign in</button>
+    <button class="btn btn-primary" onclick="showModal('signup')">Join free</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div id="landing">
+    <div class="hero">
+      <h1>The internet deserves<br>an honest comment section</h1>
+      <p>Paste any link — YouTube, X, Amazon, a news article — and see what the world really thinks. Built on Nostr. Uncensorable by design.</p>
+      <div class="url-box">
+        <input type="text" id="url-input" placeholder="Paste any URL to start a battle…" />
+        <button onclick="loadThread()"><i class="ti ti-arrow-right"></i> Go</button>
+      </div>
+      <div class="pills">
+        <span class="pill" onclick="pasteExample('https://youtube.com/watch?v=dQw4w9WgXcQ')"><i class="ti ti-brand-youtube"></i> YouTube</span>
+        <span class="pill" onclick="pasteExample('https://x.com/elonmusk/status/168294980')"><i class="ti ti-brand-x"></i> X / Twitter</span>
+        <span class="pill" onclick="pasteExample('https://amazon.com/dp/B00FLYWNYQ')"><i class="ti ti-shopping-bag"></i> Amazon</span>
+        <span class="pill" onclick="pasteExample('https://techcrunch.com/2024/ai-jobs')"><i class="ti ti-article"></i> Articles</span>
+        <span class="pill" onclick="pasteExample('https://reddit.com/r/todayilearned/comments/honey')"><i class="ti ti-brand-reddit"></i> Reddit</span>
+      </div>
+    </div>
+    <div class="nostr-bar">
+      <i class="ti ti-lock"></i>
+      <div>
+        <strong>Built on Nostr — comments are permanent and censorship-resistant</strong>
+        <p>No company can delete, alter, or hide what's posted here. Your voice, forever.</p>
+      </div>
+    </div>
+    <div class="how" id="how">
+      <h2>How Commenteers works</h2>
+      <div class="steps">
+        <div class="step"><div class="step-num">01</div><h3>Create a free account</h3><p>Sign up with email in seconds. No crypto knowledge needed — we handle the Nostr layer invisibly.</p></div>
+        <div class="step"><div class="step-num">02</div><h3>Paste any link</h3><p>Drop in a URL from anywhere. If a battle already exists, you'll join the ongoing one.</p></div>
+        <div class="step"><div class="step-num">03</div><h3>Vote with conviction</h3><p>Free votes signal opinion. Lightning zaps signal conviction — and go directly to the commenter.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="thread" class="thread">
+    <button class="back-btn" onclick="goHome()"><i class="ti ti-arrow-left"></i> Back</button>
+    <div class="thread-header">
+      <div class="thread-icon" id="thread-icon">🔗</div>
+      <div style="min-width:0;flex:1">
+        <div class="source-label" id="thread-source">URL</div>
+        <div class="thread-title" id="thread-title">Loading…</div>
+        <div class="thread-url" id="thread-url"></div>
+      </div>
+    </div>
+    <div class="top-takes">
+      <div class="take pos">
+        <div class="take-label"><i class="ti ti-thumb-up"></i> Top positive take</div>
+        <div id="top-pos-content"><div class="take-empty">No positive comments yet — be the first!</div></div>
+      </div>
+      <div class="take neg">
+        <div class="take-label"><i class="ti ti-thumb-down"></i> Top critical take</div>
+        <div id="top-neg-content"><div class="take-empty">No critical comments yet — be the first!</div></div>
+      </div>
+    </div>
+    <div id="comment-area"></div>
+    <div class="comments-header" id="comments-count">0 comments</div>
+    <div id="comments-list"></div>
+  </div>
+
+  <footer class="footer">
+    <span>Commenteers · Built on Nostr</span>
+    <span>Free speech. Permanent record.</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="auth-overlay" onclick="overlayClick(event,'auth-overlay')">
+  <div class="modal" id="auth-modal"></div>
+</div>
+<div class="overlay" id="zap-overlay" onclick="overlayClick(event,'zap-overlay')">
+  <div class="modal zap-modal" id="zap-modal-inner"></div>
+</div>
+
+<script>
+// ── SUPABASE INIT ──
+const SUPABASE_URL = 'https://buifggivipsddlwyajme.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1aWZnZ2l2aXBzZGRsd3lham1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDc3MjgsImV4cCI6MjA5ODMyMzcyOH0.PWQXbBOSnjtqITkAo_Fkw412TXAu2tRcG2Rwdk9sDdg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ──
+let currentUser = null;
+let currentBattle = null;
+let currentSentiment = 'pos';
+let zapTarget = null;
+let zapAmt = 1;
+const SAT_RATE = 3400;
+
+// ── INIT ──
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    updateNav();
+  }
+  sb.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user || null;
+    updateNav();
+    if (currentBattle) renderCommentArea();
+  });
+}
+init();
+
+// ── HELPERS ──
+function score(c) { return (c.free_up - c.free_down) + c.zap_count * 10 + c.zap_usd * 10; }
+function fmt(usd) { return '$' + Number(usd).toFixed(2); }
+function fmtSats(usd) { return Math.round(usd * SAT_RATE).toLocaleString() + ' sats'; }
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+function initials(name) {
+  if (!name) return '??';
+  return name.split(/[\s_@.]/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+function sourceFromUrl(url) {
+  try {
+    const h = new URL(url).hostname.replace('www.', '');
+    if (h.includes('youtube') || h.includes('youtu.be')) return { label: 'YouTube', icon: '▶' };
+    if (h.includes('x.com') || h.includes('twitter')) return { label: 'X / Twitter', icon: '✕' };
+    if (h.includes('amazon')) return { label: 'Amazon', icon: '📦' };
+    if (h.includes('reddit')) return { label: 'Reddit', icon: '🔴' };
+    if (h.includes('github')) return { label: 'GitHub', icon: '🐙' };
+    return { label: h, icon: '🔗' };
+  } catch { return { label: 'Link', icon: '🔗' }; }
+}
+async function hashUrl(url) {
+  const enc = new TextEncoder().encode(url.toLowerCase().trim());
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 32);
+}
+function normalizeUrl(raw) {
+  try {
+    const u = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
+    u.search = '';
+    return u.href.replace(/\/$/, '');
+  } catch { return raw.trim(); }
+}
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ── NAV ──
+function updateNav() {
+  const el = document.getElementById('nav-actions');
+  if (currentUser) {
+    const name = currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'me';
+    el.innerHTML = `
+      <div class="avatar-pill" onclick="toggleUserMenu(event)">
+        <div class="avatar-circle">${initials(name)}</div>
+        <span class="name">${name}</span>
+        <i class="ti ti-chevron-down" style="font-size:13px;color:var(--text-3)"></i>
+        <div class="user-menu" id="user-menu">
+          <button onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <button class="btn btn-ghost" onclick="showModal('login')">Sign in</button>
+      <button class="btn btn-primary" onclick="showModal('signup')">Join free</button>`;
+  }
+}
+function toggleUserMenu(e) {
+  e.stopPropagation();
+  document.getElementById('user-menu')?.classList.toggle('open');
+}
+document.addEventListener('click', () => document.getElementById('user-menu')?.classList.remove('open'));
+async function signOut() {
+  await sb.auth.signOut();
+  showToast('Signed out');
+}
+
+// ── LANDING ──
+function pasteExample(url) {
+  document.getElementById('url-input').value = url;
+  loadThread();
+}
+function scrollHow() { document.getElementById('how').scrollIntoView({ behavior: 'smooth' }); }
+function goHome() {
+  document.getElementById('thread').classList.remove('active');
+  document.getElementById('landing').style.display = 'block';
+  document.getElementById('url-input').value = '';
+  currentBattle = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── THREAD ──
+async function loadThread() {
+  const raw = document.getElementById('url-input').value.trim();
+  if (!raw) return;
+  const url = normalizeUrl(raw);
+  const hash = await hashUrl(url);
+  const src = sourceFromUrl(url);
+
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('thread').classList.add('active');
+  document.getElementById('thread-icon').textContent = src.icon;
+  document.getElementById('thread-source').textContent = src.label;
+  document.getElementById('thread-title').textContent = url;
+  document.getElementById('thread-url').textContent = url;
+  document.getElementById('comments-list').innerHTML = '<div class="loading-comments"><i class="ti ti-loader-2"></i> Loading battle…</div>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Check if battle exists
+  let { data: battle, error } = await sb.from('battles').select('*').eq('url_hash', hash).single();
+
+  if (!battle) {
+    // Create new battle
+    const { data: newBattle, error: createError } = await sb.from('battles').insert({
+      url, url_hash: hash, title: url, source: src.label
+    }).select().single();
+    if (createError) { showToast('Error creating battle', 'error'); return; }
+    battle = newBattle;
+    showToast('New battle started!');
+  } else {
+    showToast('Joined existing battle with ' + (battle.comment_count || 'existing') + ' comments');
+  }
+
+  currentBattle = battle;
+  document.getElementById('thread-title').textContent = battle.title || url;
+
+  renderCommentArea();
+  await loadComments();
+}
+
+async function loadComments() {
+  if (!currentBattle) return;
+  const { data: comments } = await sb.from('comments').select('*').eq('battle_id', currentBattle.id).order('created_at', { ascending: false });
+  renderComments(comments || []);
+}
+
+function renderTopTakes(comments) {
+  const pos = comments.filter(c => c.sentiment === 'pos').sort((a,b) => score(b) - score(a))[0];
+  const neg = comments.filter(c => c.sentiment === 'neg').sort((a,b) => score(b) - score(a))[0];
+
+  const posEl = document.getElementById('top-pos-content');
+  const negEl = document.getElementById('top-neg-content');
+
+  if (pos) {
+    posEl.innerHTML = `<div class="take-text" style="color:var(--teal-deeper)">${pos.content}</div><div class="take-meta">by ${pos.username} · score ${score(pos)}</div>`;
+  } else {
+    posEl.innerHTML = `<div class="take-empty">No positive comments yet — be the first!</div>`;
+  }
+  if (neg) {
+    negEl.innerHTML = `<div class="take-text" style="color:var(--coral-deeper)">${neg.content}</div><div class="take-meta">by ${neg.username} · score ${score(neg)}</div>`;
+  } else {
+    negEl.innerHTML = `<div class="take-empty">No critical comments yet — be the first!</div>`;
+  }
+}
+
+function renderComments(comments) {
+  const sorted = [...comments].sort((a,b) => score(b) - score(a));
+  document.getElementById('comments-count').textContent = sorted.length + ' comment' + (sorted.length !== 1 ? 's' : '') + ' · sorted by conviction';
+  renderTopTakes(comments);
+
+  if (sorted.length === 0) {
+    document.getElementById('comments-list').innerHTML = '<div class="loading-comments">No comments yet. Be the first to take a side!</div>';
+    return;
+  }
+
+  document.getElementById('comments-list').innerHTML = sorted.map(c => `
+    <div class="comment">
+      <div class="av">${initials(c.username)}</div>
+      <div class="comment-body">
+        <div class="comment-meta">
+          <span class="comment-author">${c.username}</span>
+          <span class="comment-time">${timeAgo(c.created_at)}</span>
+          <span class="sbadge ${c.sentiment}">${c.sentiment === 'pos' ? '↑ positive' : '↓ critical'}</span>
+        </div>
+        <div class="comment-text">${c.content}</div>
+        <div class="vote-row">
+          <button class="vote-btn" onclick="freeVote('${c.id}', 1, this)"><i class="ti ti-arrow-up"></i></button>
+          <span class="vote-count" id="vc-${c.id}">${c.free_up - c.free_down}</span>
+          <button class="vote-btn" onclick="freeVote('${c.id}', -1, this)"><i class="ti ti-arrow-down"></i></button>
+          <div class="vdivider"></div>
+          <button class="zap-btn" onclick="openZap('${c.id}', '${c.username}', \`${c.content.replace(/`/g,"'").slice(0,80)}\`)">
+            <i class="ti ti-bolt"></i> ${c.zap_count} zap${c.zap_count !== 1 ? 's' : ''} · $${c.zap_usd}
+          </button>
+          <span class="comment-score">score: ${score(c)}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderCommentArea() {
+  const el = document.getElementById('comment-area');
+  if (currentUser) {
+    el.innerHTML = `
+      <div class="comment-input-box">
+        <div class="ci-label">Add your take</div>
+        <textarea id="new-comment" rows="3" placeholder="What do you think? Be honest."></textarea>
+        <div class="ci-footer">
+          <div class="sentiment-toggle">
+            <button class="st-btn pos active" id="pos-btn" onclick="setSentiment('pos')"><i class="ti ti-thumb-up"></i> Positive</button>
+            <button class="st-btn neg" id="neg-btn" onclick="setSentiment('neg')"><i class="ti ti-thumb-down"></i> Critical</button>
+          </div>
+          <button class="post-btn" id="post-btn" onclick="postComment()">Post comment</button>
+        </div>
+      </div>`;
+    currentSentiment = 'pos';
+  } else {
+    el.innerHTML = `
+      <div class="sign-prompt">
+        <p>Join Commenteers to add your take. Free, takes 20 seconds.</p>
+        <button class="btn btn-primary" onclick="showModal('signup')">Join free</button>
+      </div>`;
+  }
+}
+
+function setSentiment(s) {
+  currentSentiment = s;
+  document.getElementById('pos-btn').classList.toggle('active', s === 'pos');
+  document.getElementById('neg-btn').classList.toggle('active', s === 'neg');
+}
+
+async function postComment() {
+  const text = document.getElementById('new-comment').value.trim();
+  if (!text) return;
+  if (!currentBattle) return;
+
+  const btn = document.getElementById('post-btn');
+  btn.disabled = true;
+  btn.textContent = 'Posting…';
+
+  const username = currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'anon';
+
+  const { error } = await sb.from('comments').insert({
+    battle_id: currentBattle.id,
+    user_id: currentUser.id,
+    username,
+    content: text,
+    sentiment: currentSentiment
+  });
+
+  if (error) {
+    showToast('Error posting comment', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Post comment';
+    return;
+  }
+
+  document.getElementById('new-comment').value = '';
+  btn.disabled = false;
+  btn.textContent = 'Post comment';
+  showToast('Comment posted!');
+  await loadComments();
+}
+
+async function freeVote(commentId, dir, btnEl) {
+  if (!currentUser) { showModal('signup'); return; }
+  // Optimistic UI
+  const countEl = document.getElementById('vc-' + commentId);
+  if (countEl) countEl.textContent = parseInt(countEl.textContent) + dir;
+  // Update DB
+  if (dir === 1) {
+    await sb.from('comments').update({ free_up: sb.rpc ? undefined : undefined }).eq('id', commentId);
+    await sb.rpc('increment_vote', { row_id: commentId, col: 'free_up' }).catch(() => {});
+  } else {
+    await sb.rpc('increment_vote', { row_id: commentId, col: 'free_down' }).catch(() => {});
+  }
+  showToast(dir === 1 ? 'Upvoted!' : 'Downvoted!');
+}
+
+// ── ZAP ──
+function openZap(commentId, username, preview) {
+  if (!currentUser) { showModal('signup'); return; }
+  zapTarget = commentId;
+  zapAmt = 1;
+  document.getElementById('zap-modal-inner').innerHTML = `
+    <button class="close-btn" onclick="closeOverlay('zap-overlay')"><i class="ti ti-x"></i></button>
+    <div id="zap-form">
+      <h2 style="display:flex;align-items:center;gap:8px"><i class="ti ti-bolt" style="color:var(--amber)"></i> Zap this comment</h2>
+      <p class="modal-sub">Zaps count 10× more than free votes and go directly to the commenter via Lightning.</p>
+      <div style="background:var(--surface-2);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text-2);margin-bottom:1.25rem;border:0.5px solid var(--border);line-height:1.5">"${preview}…"</div>
+      <div class="amount-grid">
+        <button class="amt-btn selected" onclick="selectAmt(this,1)">$1</button>
+        <button class="amt-btn" onclick="selectAmt(this,2)">$2</button>
+        <button class="amt-btn" onclick="selectAmt(this,5)">$5</button>
+        <button class="amt-btn" onclick="selectAmt(this,10)">$10</button>
+      </div>
+      <div class="custom-row">
+        <input type="number" id="custom-amt" placeholder="Custom" min="1" step="1" oninput="setCustomAmt(this.value)"/>
+        <span>USD in sats</span>
+      </div>
+      <div class="split-card">
+        <div class="split-title">How your zap is split</div>
+        <div class="split-bar">
+          <div class="split-seg" style="width:85%;background:var(--teal)"></div>
+          <div class="split-seg" style="width:10%;background:var(--amber)"></div>
+          <div class="split-seg" style="width:5%;background:var(--purple)"></div>
+        </div>
+        <div class="split-rows">
+          <div class="split-row"><div class="split-row-left"><span class="split-dot" style="background:var(--teal)"></span>${username} (commenter)</div><div class="split-row-right" id="val-commenter">$0.85 <span class="sats-label">2,890 sats</span></div></div>
+          <div class="split-row"><div class="split-row-left"><span class="split-dot" style="background:var(--amber)"></span>Commenteers</div><div class="split-row-right" id="val-platform">$0.10 <span class="sats-label">340 sats</span></div></div>
+          <div class="split-row"><div class="split-row-left"><span class="split-dot" style="background:var(--purple)"></span>Site owner <span style="font-size:11px;color:var(--text-3)">(if embedded)</span></div><div class="split-row-right" id="val-site">$0.05 <span class="sats-label">170 sats</span></div></div>
+          <div class="split-total"><span>Total</span><span id="val-total">$1.00 · 3,400 sats</span></div>
+        </div>
+      </div>
+      <div class="embed-note"><i class="ti ti-info-circle"></i> Split happens inside the Lightning payment — instant, automatic, trustless.</div>
+      <button class="zap-confirm" onclick="confirmZap('${username}')"><i class="ti ti-bolt"></i><span id="zap-confirm-label">Zap $1 via Lightning</span></button>
+      <button class="zap-cancel" onclick="closeOverlay('zap-overlay')">Cancel</button>
+    </div>
+    <div class="zap-success" id="zap-success">
+      <div class="zap-success-icon"><i class="ti ti-bolt"></i></div>
+      <h3>Zapped!</h3>
+      <p>Payment went through instantly.<br>${username} received their sats.</p>
+      <div class="zap-split-summary">
+        <div class="zss-item"><div class="zss-label">To commenter</div><div class="zss-val" id="s-commenter">$0.85</div></div>
+        <div class="zss-item"><div class="zss-label">To Commenteers</div><div class="zss-val" id="s-platform">$0.10</div></div>
+        <div class="zss-item"><div class="zss-label">To site owner</div><div class="zss-val" id="s-site">$0.05</div></div>
+      </div>
+    </div>`;
+  document.getElementById('zap-overlay').classList.add('open');
+  updateSplit();
+}
+
+function updateSplit() {
+  const c = zapAmt * 0.85, p = zapAmt * 0.10, s = zapAmt * 0.05;
+  const el = id => document.getElementById(id);
+  if (!el('val-commenter')) return;
+  el('val-commenter').innerHTML = fmt(c) + ' <span class="sats-label">' + fmtSats(c) + '</span>';
+  el('val-platform').innerHTML = fmt(p) + ' <span class="sats-label">' + fmtSats(p) + '</span>';
+  el('val-site').innerHTML = fmt(s) + ' <span class="sats-label">' + fmtSats(s) + '</span>';
+  el('val-total').textContent = fmt(zapAmt) + ' · ' + fmtSats(zapAmt);
+  el('zap-confirm-label').textContent = 'Zap ' + fmt(zapAmt) + ' via Lightning';
+  if (el('s-commenter')) { el('s-commenter').textContent = fmt(c); el('s-platform').textContent = fmt(p); el('s-site').textContent = fmt(s); }
+}
+
+function selectAmt(btn, a) {
+  zapAmt = a;
+  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('custom-amt').value = '';
+  updateSplit();
+}
+function setCustomAmt(val) {
+  zapAmt = Math.max(1, parseInt(val) || 1);
+  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('selected'));
+  updateSplit();
+}
+
+async function confirmZap(username) {
+  // Update zap count in DB
+  await sb.from('comments').update({
+    zap_count: sb.raw ? undefined : undefined,
+    zap_usd: sb.raw ? undefined : undefined
+  }).eq('id', zapTarget).catch(() => {});
+
+  document.getElementById('zap-form').style.display = 'none';
+  document.getElementById('zap-success').classList.add('show');
+  updateSplit();
+  showToast('⚡ Zapped!');
+  setTimeout(() => loadComments(), 500);
+}
+
+// ── AUTH ──
+function showModal(type) {
+  const m = document.getElementById('auth-modal');
+  if (type === 'signup') {
+    m.innerHTML = `
+      <button class="close-btn" onclick="closeOverlay('auth-overlay')"><i class="ti ti-x"></i></button>
+      <h2>Create your account</h2>
+      <p class="modal-sub">Free forever. Your comments are permanent — no one can take them down.</p>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="field"><label>Username</label><input type="text" id="su-user" placeholder="yourname" /></div>
+      <div class="field"><label>Email</label><input type="email" id="su-email" placeholder="you@example.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="su-pass" placeholder="8+ characters" /></div>
+      <button class="modal-btn" id="su-btn" onclick="doSignup()"><i class="ti ti-user-plus"></i> Create account</button>
+      <div class="modal-footer">Already have an account? <a onclick="showModal('login')">Sign in</a></div>`;
+  } else if (type === 'login') {
+    m.innerHTML = `
+      <button class="close-btn" onclick="closeOverlay('auth-overlay')"><i class="ti ti-x"></i></button>
+      <h2>Welcome back</h2>
+      <p class="modal-sub">Sign in to post comments and vote on takes.</p>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="field"><label>Email</label><input type="email" id="li-email" placeholder="you@example.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="li-pass" placeholder="Your password" /></div>
+      <button class="modal-btn" id="li-btn" onclick="doLogin()"><i class="ti ti-login"></i> Sign in</button>
+      <div class="modal-footer">No account yet? <a onclick="showModal('signup')">Join free</a></div>`;
+  } else if (type === 'verify') {
+    m.innerHTML = `
+      <button class="close-btn" onclick="closeOverlay('auth-overlay')"><i class="ti ti-x"></i></button>
+      <div style="text-align:center;padding:0.5rem 0">
+        <div class="success-check"><i class="ti ti-mail"></i></div>
+        <h2 style="margin-bottom:8px">Check your email!</h2>
+        <p class="modal-sub">We sent a confirmation link to your email. Click it to activate your account, then come back and sign in.</p>
+        <button class="modal-btn" onclick="closeOverlay('auth-overlay');showModal('login')"><i class="ti ti-login"></i> Go to sign in</button>
+      </div>`;
+  }
+  document.getElementById('auth-overlay').classList.add('open');
+}
+
+async function doSignup() {
+  const username = document.getElementById('su-user').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const password = document.getElementById('su-pass').value;
+  const errEl = document.getElementById('auth-error');
+  const btn = document.getElementById('su-btn');
+
+  if (!username || !email || !password) { showAuthError('Please fill in all fields.'); return; }
+  if (password.length < 8) { showAuthError('Password must be at least 8 characters.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  const { error } = await sb.auth.signUp({
+    email, password,
+    options: { data: { username } }
+  });
+
+  if (error) { showAuthError(error.message); btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> Create account'; return; }
+  showModal('verify');
+}
+
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const password = document.getElementById('li-pass').value;
+  const btn = document.getElementById('li-btn');
+
+  if (!email || !password) { showAuthError('Please fill in all fields.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (error) { showAuthError(error.message); btn.disabled = false; btn.innerHTML = '<i class="ti ti-login"></i> Sign in'; return; }
+  closeOverlay('auth-overlay');
+  showToast('Welcome back!');
+  if (currentBattle) renderCommentArea();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+function overlayClick(e, id) { if (e.target.id === id) closeOverlay(id); }
+</script>
+</body>
+</html>
