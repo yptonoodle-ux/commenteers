@@ -126,7 +126,7 @@ tags: [
 ['t', sentiment === 'pos' ? 'positive' : 'critical'],
 ['client', 'Commenteers'],
 ],
-content: ${sentimentLabel} on "${battleTitle || battleUrl}"\n\n${content}\n\n— posted by ${username} on Commenteers\n${battleUrl},
+content: `${sentimentLabel} on "${battleTitle || battleUrl}"\n\n${content}\n\n— posted by ${username} on Commenteers\n${battleUrl}`,
 };
 const signedEvent = await createNostrEvent(privKeyBytes, template);
 const wsRelays = ['wss://relay.damus.io','wss://nos.lol','wss://relay.primal.net','wss://relay.nostr.band'];
