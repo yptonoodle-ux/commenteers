@@ -317,7 +317,7 @@
         <div style="min-width:0;flex:1">
           <div class="source-label" id="thread-source">URL</div>
           <div class="thread-title" id="thread-title">Loading…</div>
-          <div class="thread-url" id="thread-url"></div>
+          <a class="thread-url" id="thread-url" href="#" target="_blank" rel="noopener noreferrer" style="cursor:pointer;text-decoration:none;transition:color 0.15s" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color=''"></a>
         </div>
         <button class="share-btn" id="share-btn" onclick="shareBattle()" title="Copy link to this battle">
           <i class="ti ti-link"></i> Share battle
@@ -591,20 +591,26 @@ async function loadThread() {
 }
 
 function renderThreadHeader(battle, url, ogData, src) {
-  const s = src || sourceFromUrl(url || battle.url);
+  const finalUrl = url || battle.url || '';
+  const s = src || sourceFromUrl(finalUrl);
   const img = battle.og_image || ogData?.image;
-  const title = battle.title || ogData?.title || url || battle.url;
+  const title = battle.title || ogData?.title || finalUrl;
   const source = battle.source || ogData?.siteName || s.label;
 
   const thumbEl = document.getElementById('thread-thumb');
   if (img) {
-    thumbEl.innerHTML = `<img src="${img}" alt="" onerror="this.parentElement.innerHTML='<span>${s.icon}</span>'">`;
+    thumbEl.innerHTML = `<img src="${img}" alt="${title}" onerror="this.parentElement.innerHTML='<span style=\'font-size:48px\'>${s.icon}</span>'">`;
   } else {
-    thumbEl.innerHTML = `<span>${s.icon}</span>`;
+    thumbEl.innerHTML = `<span style="font-size:48px">${s.icon}</span>`;
   }
+
   document.getElementById('thread-source').textContent = source;
   document.getElementById('thread-title').textContent = title;
-  document.getElementById('thread-url').textContent = url || battle.url;
+
+  // Make the URL a real clickable link
+  const urlEl = document.getElementById('thread-url');
+  urlEl.textContent = finalUrl.replace(/^https?:\/\//, '');
+  urlEl.href = finalUrl.startsWith('http') ? finalUrl : 'https://' + finalUrl;
 }
 
 async function loadComments() {
