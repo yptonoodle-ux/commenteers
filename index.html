@@ -401,17 +401,18 @@ function normalizeUrl(raw) {
     let u = raw.trim();
     if (!u.startsWith('http')) u = 'https://' + u;
     const parsed = new URL(u);
-    // Remove tracking params
-    ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','ref','s','si'].forEach(p => parsed.searchParams.delete(p));
-    // Normalize host
-    parsed.hostname = parsed.hostname.replace(/^www\./, '');
+    // Only remove known tracking params — keep everything else (video IDs, product IDs etc)
+    ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid'].forEach(p => parsed.searchParams.delete(p));
+    // Lowercase only the hostname, not the path (video IDs are case sensitive)
+    parsed.hostname = parsed.hostname.toLowerCase().replace(/^www\./, '');
     // Force https
     parsed.protocol = 'https:';
     return parsed.href.replace(/\/$/, '');
   } catch { return raw.trim(); }
 }
 async function hashUrl(url) {
-  const enc = new TextEncoder().encode(url.toLowerCase().trim());
+  // Do NOT lowercase the full URL — paths and query params can be case sensitive
+  const enc = new TextEncoder().encode(url.trim());
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 32);
 }
