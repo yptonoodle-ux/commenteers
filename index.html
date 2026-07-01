@@ -241,6 +241,9 @@ a{color:inherit;text-decoration:none}
 .zss-label{font-size:11px;color:var(--text-3);margin-bottom:3px}
 .zss-val{font-size:14px;font-weight:500}
 
+.nostr-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:999px;background:#F0E6FF;color:#534AB7;border:.5px solid #C4B5FD;text-decoration:none;transition:background .15s}
+.nostr-badge:hover{background:#E4D4FF}
+.nostr-verified{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
 .footer{border-top:.5px solid var(--border);padding-top:1.5rem;margin-top:2rem;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--text-3);flex-wrap:wrap;gap:8px}
 </style>
 </head>
@@ -312,7 +315,12 @@ a{color:inherit;text-decoration:none}
     <button class="back-btn" onclick="goBack()"><i class="ti ti-arrow-left"></i> Back</button>
     <div class="thread-header">
       <div class="thread-thumb" id="thread-thumb"><span style="font-size:64px">🔗</span></div>
-      <div class="thread-header-body">
+      <div style="padding:8px 1.25rem;background:#F0E6FF;border-top:.5px solid #C4B5FD;display:flex;align-items:center;gap:8px;font-size:12px;color:#534AB7">
+      <i class="ti ti-shield-check" style="font-size:14px"></i>
+      <span>Comments on this battle are published to the Nostr protocol — permanent and uncensorable.</span>
+      <a href="https://njump.me/npub1gp3x4xkxkunc3yne5zxfpd2uunchrltkz5dar4acrpdne7lt0l0qwe23ty" target="_blank" rel="noopener noreferrer" style="margin-left:auto;white-space:nowrap;color:#534AB7;font-weight:500">View on Nostr →</a>
+    </div>
+    <div class="thread-header-body">
         <div class="thread-meta">
           <div class="thread-source-label" id="thread-source">URL</div>
           <div class="thread-title-text" id="thread-title">Loading…</div>
@@ -672,6 +680,7 @@ function renderComments(comments) {
             <i class="ti ti-bolt"></i> ${c.zap_count} zap${c.zap_count!==1?'s':''} · $${c.zap_usd}
           </button>
           <span class="comment-score">score: ${score(c)}</span>
+          ${c.nostr_event_id ? `<a class="nostr-badge" href="https://njump.me/${c.nostr_event_id}" target="_blank" rel="noopener noreferrer"><i class="ti ti-brand-nostr" style="font-size:12px"></i> On Nostr</a>` : ''}
         </div>
       </div>
     </div>`).join('');
@@ -714,15 +723,44 @@ async function postComment() {
   const btn = document.getElementById('post-btn');
   btn.disabled = true; btn.textContent = 'Posting…';
   const username = currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'anon';
-  const { error } = await sb.from('comments').insert({
+  const { data, error } = await sb.from('comments').insert({
     battle_id: currentBattle.id, user_id: currentUser.id,
     username, content: text, sentiment: currentSentiment
-  });
+  }).select();
   if (error) { showToast('Error posting', 'error'); btn.disabled = false; btn.textContent = 'Post comment'; return; }
   document.getElementById('new-comment').value = '';
   btn.disabled = false; btn.textContent = 'Post comment';
   showToast('Comment posted!');
+
+  // Publish to Nostr in background
+  publishToNostr({
+    content: text,
+    battleUrl: currentBattle.url,
+    battleTitle: currentBattle.title,
+    username,
+    commentId: data?.[0]?.id,
+    sentiment: currentSentiment
+  });
+
   await loadComments();
+}
+
+async function publishToNostr({ content, battleUrl, battleTitle, username, commentId, sentiment }) {
+  try {
+    const res = await fetch('/api/nostr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, battleUrl, battleTitle, username, commentId, sentiment })
+    });
+    const data = await res.json();
+    if (data.eventId && commentId) {
+      // Save the Nostr event ID back to Supabase
+      await sb.from('comments').update({ nostr_event_id: data.eventId }).eq('id', commentId);
+      if (data.successCount > 0) showToast(`⚡ Published to ${data.successCount} Nostr relays!`);
+    }
+  } catch (e) {
+    console.warn('Nostr publish failed:', e);
+  }
 }
 
 async function freeVote(commentId, dir, btnEl) {
