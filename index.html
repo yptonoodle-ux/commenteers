@@ -239,6 +239,9 @@
   .zss-item { text-align: center; }
   .zss-label { font-size: 11px; color: var(--text-3); margin-bottom: 3px; }
   .zss-val { font-size: 14px; font-weight: 500; }
+  .share-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: var(--surface-2); color: var(--text-2); font-size: 13px; font-family: inherit; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s; }
+  .share-btn:hover { background: var(--teal-light); border-color: var(--teal); color: var(--teal-dark); }
+  .share-btn.copied { background: var(--teal-light); border-color: var(--teal); color: var(--teal-dark); }
   .footer { border-top: 0.5px solid var(--border); padding-top: 1.5rem; margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-3); flex-wrap: wrap; gap: 8px; }
 </style>
 </head>
@@ -316,6 +319,9 @@
           <div class="thread-title" id="thread-title">Loading…</div>
           <div class="thread-url" id="thread-url"></div>
         </div>
+        <button class="share-btn" id="share-btn" onclick="shareBattle()" title="Copy link to this battle">
+          <i class="ti ti-link"></i> Share battle
+        </button>
       </div>
     </div>
     <div class="top-takes">
@@ -367,6 +373,7 @@ async function init() {
   });
 }
 init();
+loadFromUrlParam();
 
 // HELPERS
 function score(c) { return (c.free_up - c.free_down) + c.zap_count * 10 + Number(c.zap_usd) * 10; }
@@ -772,6 +779,40 @@ async function confirmZap(username) {
   document.getElementById('zap-success').classList.add('show');
   updateSplit(); showToast('⚡ Zapped!');
   setTimeout(() => loadComments(), 500);
+}
+
+// SHARE
+function shareBattle() {
+  if (!currentBattle) return;
+  const shareUrl = window.location.origin + '?battle=' + currentBattle.id;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    const btn = document.getElementById('share-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+    showToast('Battle link copied!');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<i class="ti ti-link"></i> Share battle';
+    }, 2500);
+  }).catch(() => {
+    // Fallback for browsers that block clipboard
+    prompt('Copy this link:', window.location.origin + '?battle=' + currentBattle.id);
+  });
+}
+
+// Load battle from URL param on page load
+async function loadFromUrlParam() {
+  const params = new URLSearchParams(window.location.search);
+  const battleId = params.get('battle');
+  if (!battleId) return;
+  const { data: battle } = await sb.from('battles').select('*').eq('id', battleId).single();
+  if (!battle) return;
+  currentBattle = battle;
+  prevView = 'home';
+  renderThreadHeader(battle, battle.url, null, null);
+  showView('thread');
+  renderCommentArea();
+  await loadComments();
 }
 
 // AUTH
