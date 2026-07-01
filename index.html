@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -25,6 +25,7 @@
   body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
 
+  /* NAV */
   .nav { position: sticky; top: 0; z-index: 100; background: rgba(247,247,245,0.92); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
   .logo { font-size: 17px; font-weight: 500; letter-spacing: -0.3px; cursor: pointer; }
   .logo span { color: var(--teal); }
@@ -40,15 +41,18 @@
   .avatar-pill { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border: 0.5px solid var(--border); border-radius: 999px; background: var(--surface); cursor: pointer; transition: background 0.15s; position: relative; }
   .avatar-pill:hover { background: var(--surface-2); }
   .avatar-circle { width: 26px; height: 26px; border-radius: 50%; background: var(--teal-light); color: var(--teal-deeper); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
-  .avatar-pill .name { font-size: 13px; }
+  .avatar-pill .uname { font-size: 13px; }
   .user-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 6px; min-width: 160px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
   .user-menu.open { display: block; }
   .user-menu button { width: 100%; padding: 8px 12px; text-align: left; background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text-2); border-radius: var(--radius); font-family: inherit; display: flex; align-items: center; gap: 8px; }
   .user-menu button:hover { background: var(--surface-2); color: var(--text); }
-  .user-menu button.danger { color: var(--coral-dark); }
-  .user-menu button.danger:hover { background: var(--coral-light); }
 
+  /* PAGE */
   .page { max-width: 720px; margin: 0 auto; padding: 0 1.25rem 5rem; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* HERO */
   .hero { text-align: center; padding: 5rem 0 3.5rem; }
   .hero h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 500; letter-spacing: -0.6px; line-height: 1.15; margin-bottom: 1.1rem; }
   .hero p { font-size: 17px; color: var(--text-2); max-width: 460px; margin: 0 auto 2.25rem; line-height: 1.65; }
@@ -73,16 +77,41 @@
   .step h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
   .step p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
 
-  .thread { display: none; }
-  .thread.active { display: block; padding-top: 1.5rem; }
-  .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); background: none; border: none; cursor: pointer; font-family: inherit; margin-bottom: 1.25rem; padding: 0; transition: color 0.15s; }
+  /* BROWSE */
+  .browse-header { display: flex; align-items: center; justify-content: space-between; padding: 2rem 0 1.5rem; }
+  .browse-header h2 { font-size: 22px; font-weight: 500; }
+  .browse-tabs { display: flex; gap: 6px; }
+  .browse-tab { padding: 6px 14px; border-radius: 999px; border: 0.5px solid var(--border); background: transparent; font-size: 13px; color: var(--text-2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .browse-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .browse-tab:hover:not(.active) { background: var(--surface-2); }
+  .battle-grid { display: flex; flex-direction: column; gap: 12px; }
+  .battle-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; display: flex; gap: 0; }
+  .battle-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-color: var(--border-strong); }
+  .battle-thumb { width: 120px; min-height: 90px; flex-shrink: 0; background: var(--surface-2); object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .battle-thumb img { width: 120px; height: 100%; object-fit: cover; }
+  .battle-info { flex: 1; padding: 14px 16px; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  .battle-source { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); margin-bottom: 4px; }
+  .battle-title { font-size: 15px; font-weight: 500; line-height: 1.35; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .battle-stats { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-3); flex-wrap: wrap; }
+  .battle-stat { display: flex; align-items: center; gap: 4px; }
+  .battle-hot { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; background: #FAEEDA; color: #633806; margin-left: auto; }
+  .browse-empty { text-align: center; padding: 4rem 0; color: var(--text-3); }
+  .browse-empty i { font-size: 40px; margin-bottom: 12px; display: block; }
+  .browse-loading { text-align: center; padding: 3rem 0; color: var(--text-3); font-size: 14px; }
+
+  /* THREAD */
+  .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); background: none; border: none; cursor: pointer; font-family: inherit; margin-bottom: 1.25rem; padding: 0; transition: color 0.15s; margin-top: 1.5rem; }
   .back-btn:hover { color: var(--text); }
-  .thread-header { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
-  .thread-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--surface-2); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .thread-header { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 1.5rem; }
+  .thread-thumb { width: 100%; height: 200px; object-fit: cover; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .thread-thumb img { width: 100%; height: 200px; object-fit: cover; }
+  .thread-header-inner { display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem; }
+  .thread-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface-2); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
   .source-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); margin-bottom: 3px; }
-  .thread-title { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .thread-title { font-size: 15px; font-weight: 500; line-height: 1.35; }
   .thread-url { font-size: 12px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+  /* TOP TAKES */
   .top-takes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.75rem; }
   @media (max-width: 500px) { .top-takes { grid-template-columns: 1fr; } }
   .take { padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 0.5px solid; }
@@ -98,9 +127,10 @@
   .take.pos .take-meta { color: var(--teal-dark); }
   .take.neg .take-meta { color: var(--coral-dark); }
   .take-empty { font-size: 13px; font-style: italic; }
-  .take.pos .take-empty { color: var(--teal-dark); }
-  .take.neg .take-empty { color: var(--coral-dark); }
+  .take.pos .take-empty { color: var(--teal-dark); opacity: 0.7; }
+  .take.neg .take-empty { color: var(--coral-dark); opacity: 0.7; }
 
+  /* COMMENT INPUT */
   .comment-input-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
   .ci-label { font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
   .comment-input-box textarea { width: 100%; border: 0.5px solid var(--border-strong); border-radius: var(--radius); padding: 10px 12px; font-size: 14px; font-family: inherit; resize: none; background: var(--surface-2); color: var(--text); outline: none; line-height: 1.55; transition: border-color 0.15s, box-shadow 0.15s; }
@@ -114,10 +144,10 @@
   .post-btn { font-size: 13px; padding: 7px 18px; border: none; border-radius: var(--radius); background: var(--teal); color: #fff; cursor: pointer; font-weight: 500; font-family: inherit; transition: background 0.15s; }
   .post-btn:hover { background: var(--teal-dark); }
   .post-btn:disabled { background: var(--text-3); cursor: not-allowed; }
-
   .sign-prompt { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .sign-prompt p { font-size: 14px; color: var(--text-2); }
 
+  /* COMMENTS */
   .comments-header { font-size: 13px; color: var(--text-3); border-bottom: 0.5px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 0; }
   .comment { display: flex; gap: 12px; padding: 1rem 0; border-bottom: 0.5px solid var(--border); }
   .comment:last-child { border-bottom: none; }
@@ -142,12 +172,14 @@
   .zap-btn.zapped { background: var(--amber-light); border-color: var(--amber); }
   .zap-btn i { font-size: 13px; color: var(--amber); }
   .comment-score { font-size: 11px; color: var(--text-3); margin-left: 4px; }
+  .loading-msg { padding: 2rem 0; text-align: center; color: var(--text-3); font-size: 14px; }
 
-  .loading-comments { padding: 2rem 0; text-align: center; color: var(--text-3); font-size: 14px; }
-  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  /* TOAST */
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .toast.error { background: var(--coral-dark); }
 
+  /* MODAL */
   .overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.4); padding: 1rem; align-items: center; justify-content: center; }
   .overlay.open { display: flex; }
   .modal { background: var(--surface); border-radius: var(--radius-xl); border: 0.5px solid var(--border); padding: 2rem; width: 100%; max-width: 400px; position: relative; max-height: 90vh; overflow-y: auto; }
@@ -170,6 +202,7 @@
   .auth-error.show { display: block; }
   .success-check { width: 52px; height: 52px; border-radius: 50%; background: var(--teal-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 24px; color: var(--teal); }
 
+  /* ZAP MODAL */
   .zap-modal { max-width: 360px; }
   .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 1rem; }
   .amt-btn { padding: 10px 4px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2); font-family: inherit; transition: all 0.15s; }
@@ -184,7 +217,7 @@
   .split-bar { height: 8px; border-radius: 999px; overflow: hidden; display: flex; gap: 2px; margin-bottom: 12px; }
   .split-seg { height: 100%; border-radius: 2px; }
   .split-rows { display: flex; flex-direction: column; gap: 7px; }
-  .split-row { display: flex; align-items: center; justify-content: space-between; }
+  .split-row-z { display: flex; align-items: center; justify-content: space-between; }
   .split-row-left { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-2); }
   .split-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .split-row-right { font-size: 13px; font-weight: 500; }
@@ -212,10 +245,10 @@
 <body>
 
 <nav class="nav">
-  <div class="logo" onclick="goHome()">Comment<span>eers</span></div>
+  <div class="logo" onclick="showView('home')">Comment<span>eers</span></div>
   <div class="nav-links">
+    <a onclick="showView('browse')">Browse</a>
     <a onclick="scrollHow()">How it works</a>
-    <a>Browse</a>
   </div>
   <div class="nav-actions" id="nav-actions">
     <button class="btn btn-ghost" onclick="showModal('login')">Sign in</button>
@@ -224,7 +257,9 @@
 </nav>
 
 <div class="page">
-  <div id="landing">
+
+  <!-- HOME VIEW -->
+  <div id="view-home" class="view active">
     <div class="hero">
       <h1>The internet deserves<br>an honest comment section</h1>
       <p>Paste any link — YouTube, X, Amazon, a news article — and see what the world really thinks. Built on Nostr. Uncensorable by design.</p>
@@ -236,7 +271,6 @@
         <span class="pill" onclick="pasteExample('https://youtube.com/watch?v=dQw4w9WgXcQ')"><i class="ti ti-brand-youtube"></i> YouTube</span>
         <span class="pill" onclick="pasteExample('https://x.com/elonmusk/status/168294980')"><i class="ti ti-brand-x"></i> X / Twitter</span>
         <span class="pill" onclick="pasteExample('https://amazon.com/dp/B00FLYWNYQ')"><i class="ti ti-shopping-bag"></i> Amazon</span>
-        <span class="pill" onclick="pasteExample('https://techcrunch.com/2024/ai-jobs')"><i class="ti ti-article"></i> Articles</span>
         <span class="pill" onclick="pasteExample('https://reddit.com/r/todayilearned/comments/honey')"><i class="ti ti-brand-reddit"></i> Reddit</span>
       </div>
     </div>
@@ -250,21 +284,38 @@
     <div class="how" id="how">
       <h2>How Commenteers works</h2>
       <div class="steps">
-        <div class="step"><div class="step-num">01</div><h3>Create a free account</h3><p>Sign up with email in seconds. No crypto knowledge needed — we handle the Nostr layer invisibly.</p></div>
-        <div class="step"><div class="step-num">02</div><h3>Paste any link</h3><p>Drop in a URL from anywhere. If a battle already exists, you'll join the ongoing one.</p></div>
+        <div class="step"><div class="step-num">01</div><h3>Create a free account</h3><p>Sign up with email in seconds. No crypto knowledge needed — we handle Nostr invisibly.</p></div>
+        <div class="step"><div class="step-num">02</div><h3>Paste any link</h3><p>Drop in a URL from anywhere. If a battle already exists, you'll join the ongoing one automatically.</p></div>
         <div class="step"><div class="step-num">03</div><h3>Vote with conviction</h3><p>Free votes signal opinion. Lightning zaps signal conviction — and go directly to the commenter.</p></div>
       </div>
     </div>
   </div>
 
-  <div id="thread" class="thread">
-    <button class="back-btn" onclick="goHome()"><i class="ti ti-arrow-left"></i> Back</button>
+  <!-- BROWSE VIEW -->
+  <div id="view-browse" class="view">
+    <div class="browse-header">
+      <h2>Browse battles</h2>
+      <div class="browse-tabs">
+        <button class="browse-tab active" id="tab-hot" onclick="switchTab('hot')"><i class="ti ti-flame"></i> Hot</button>
+        <button class="browse-tab" id="tab-new" onclick="switchTab('new')"><i class="ti ti-clock"></i> New</button>
+      </div>
+    </div>
+    <div class="battle-grid" id="battle-grid">
+      <div class="browse-loading"><i class="ti ti-loader-2"></i> Loading battles…</div>
+    </div>
+  </div>
+
+  <!-- THREAD VIEW -->
+  <div id="view-thread" class="view">
+    <button class="back-btn" id="back-btn" onclick="goBack()"><i class="ti ti-arrow-left"></i> Back</button>
     <div class="thread-header">
-      <div class="thread-icon" id="thread-icon">🔗</div>
-      <div style="min-width:0;flex:1">
-        <div class="source-label" id="thread-source">URL</div>
-        <div class="thread-title" id="thread-title">Loading…</div>
-        <div class="thread-url" id="thread-url"></div>
+      <div class="thread-thumb" id="thread-thumb"><span id="thread-icon">🔗</span></div>
+      <div class="thread-header-inner">
+        <div style="min-width:0;flex:1">
+          <div class="source-label" id="thread-source">URL</div>
+          <div class="thread-title" id="thread-title">Loading…</div>
+          <div class="thread-url" id="thread-url"></div>
+        </div>
       </div>
     </div>
     <div class="top-takes">
@@ -289,36 +340,27 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
-<div class="overlay" id="auth-overlay" onclick="overlayClick(event,'auth-overlay')">
-  <div class="modal" id="auth-modal"></div>
-</div>
-<div class="overlay" id="zap-overlay" onclick="overlayClick(event,'zap-overlay')">
-  <div class="modal zap-modal" id="zap-modal-inner"></div>
-</div>
+<div class="overlay" id="auth-overlay" onclick="overlayClick(event,'auth-overlay')"><div class="modal" id="auth-modal"></div></div>
+<div class="overlay" id="zap-overlay" onclick="overlayClick(event,'zap-overlay')"><div class="modal zap-modal" id="zap-modal-inner"></div></div>
 
 <script>
-// ── SUPABASE INIT ──
 const SUPABASE_URL = 'https://buifggivipsddlwyajme.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1aWZnZ2l2aXBzZGRsd3lham1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDc3MjgsImV4cCI6MjA5ODMyMzcyOH0.PWQXbBOSnjtqITkAo_Fkw412TXAu2tRcG2Rwdk9sDdg';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── STATE ──
 let currentUser = null;
 let currentBattle = null;
 let currentSentiment = 'pos';
 let zapTarget = null;
 let zapAmt = 1;
+let browseTab = 'hot';
+let prevView = 'home';
 const SAT_RATE = 3400;
 
-// ── INIT ──
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    currentUser = session.user;
-    updateNav();
-  }
-  sb.auth.onAuthStateChange((_event, session) => {
+  if (session?.user) { currentUser = session.user; updateNav(); }
+  sb.auth.onAuthStateChange((_e, session) => {
     currentUser = session?.user || null;
     updateNav();
     if (currentBattle) renderCommentArea();
@@ -326,8 +368,8 @@ async function init() {
 }
 init();
 
-// ── HELPERS ──
-function score(c) { return (c.free_up - c.free_down) + c.zap_count * 10 + c.zap_usd * 10; }
+// HELPERS
+function score(c) { return (c.free_up - c.free_down) + c.zap_count * 10 + Number(c.zap_usd) * 10; }
 function fmt(usd) { return '$' + Number(usd).toFixed(2); }
 function fmtSats(usd) { return Math.round(usd * SAT_RATE).toLocaleString() + ' sats'; }
 function timeAgo(ts) {
@@ -349,20 +391,36 @@ function sourceFromUrl(url) {
     if (h.includes('amazon')) return { label: 'Amazon', icon: '📦' };
     if (h.includes('reddit')) return { label: 'Reddit', icon: '🔴' };
     if (h.includes('github')) return { label: 'GitHub', icon: '🐙' };
+    if (h.includes('tiktok')) return { label: 'TikTok', icon: '🎵' };
+    if (h.includes('instagram')) return { label: 'Instagram', icon: '📸' };
     return { label: h, icon: '🔗' };
   } catch { return { label: 'Link', icon: '🔗' }; }
+}
+function normalizeUrl(raw) {
+  try {
+    let u = raw.trim();
+    if (!u.startsWith('http')) u = 'https://' + u;
+    const parsed = new URL(u);
+    // Remove tracking params
+    ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','ref','s','si'].forEach(p => parsed.searchParams.delete(p));
+    // Normalize host
+    parsed.hostname = parsed.hostname.replace(/^www\./, '');
+    // Force https
+    parsed.protocol = 'https:';
+    return parsed.href.replace(/\/$/, '');
+  } catch { return raw.trim(); }
 }
 async function hashUrl(url) {
   const enc = new TextEncoder().encode(url.toLowerCase().trim());
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 32);
 }
-function normalizeUrl(raw) {
+async function fetchOG(url) {
   try {
-    const u = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
-    u.search = '';
-    return u.href.replace(/\/$/, '');
-  } catch { return raw.trim(); }
+    const res = await fetch('/api/og?url=' + encodeURIComponent(url));
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
 }
 function showToast(msg, type = '') {
   const t = document.getElementById('toast');
@@ -371,7 +429,20 @@ function showToast(msg, type = '') {
   setTimeout(() => t.className = 'toast', 3000);
 }
 
-// ── NAV ──
+// VIEWS
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'browse') loadBrowse();
+}
+function scrollHow() {
+  showView('home');
+  setTimeout(() => document.getElementById('how').scrollIntoView({ behavior: 'smooth' }), 100);
+}
+function goBack() { showView(prevView); }
+
+// NAV
 function updateNav() {
   const el = document.getElementById('nav-actions');
   if (currentUser) {
@@ -379,7 +450,7 @@ function updateNav() {
     el.innerHTML = `
       <div class="avatar-pill" onclick="toggleUserMenu(event)">
         <div class="avatar-circle">${initials(name)}</div>
-        <span class="name">${name}</span>
+        <span class="uname">${name}</span>
         <i class="ti ti-chevron-down" style="font-size:13px;color:var(--text-3)"></i>
         <div class="user-menu" id="user-menu">
           <button onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
@@ -391,67 +462,141 @@ function updateNav() {
       <button class="btn btn-primary" onclick="showModal('signup')">Join free</button>`;
   }
 }
-function toggleUserMenu(e) {
-  e.stopPropagation();
-  document.getElementById('user-menu')?.classList.toggle('open');
-}
+function toggleUserMenu(e) { e.stopPropagation(); document.getElementById('user-menu')?.classList.toggle('open'); }
 document.addEventListener('click', () => document.getElementById('user-menu')?.classList.remove('open'));
-async function signOut() {
-  await sb.auth.signOut();
-  showToast('Signed out');
+async function signOut() { await sb.auth.signOut(); showToast('Signed out'); }
+
+// BROWSE
+async function loadBrowse() {
+  const grid = document.getElementById('battle-grid');
+  grid.innerHTML = '<div class="browse-loading"><i class="ti ti-loader-2"></i> Loading battles…</div>';
+
+  let query = sb.from('battles').select('*, comments(count)');
+  if (browseTab === 'new') {
+    query = query.order('created_at', { ascending: false }).limit(20);
+  } else {
+    query = query.order('created_at', { ascending: false }).limit(50);
+  }
+
+  const { data: battles } = await query;
+  if (!battles || battles.length === 0) {
+    grid.innerHTML = '<div class="browse-empty"><i class="ti ti-sword"></i><p>No battles yet.<br>Be the first to start one!</p></div>';
+    return;
+  }
+
+  // For hot tab, sort by comment count
+  let sorted = battles;
+  if (browseTab === 'hot') {
+    sorted = battles.sort((a, b) => (b.comments?.[0]?.count || 0) - (a.comments?.[0]?.count || 0));
+  }
+
+  grid.innerHTML = sorted.map(b => {
+    const src = sourceFromUrl(b.url || '');
+    const commentCount = b.comments?.[0]?.count || 0;
+    const isHot = commentCount >= 5;
+    return `
+      <div class="battle-card" onclick="openBattle('${b.id}', '${encodeURIComponent(b.url)}')">
+        <div class="battle-thumb" id="thumb-${b.id}">
+          ${b.og_image ? `<img src="${b.og_image}" alt="" onerror="this.parentElement.textContent='${src.icon}'">` : src.icon}
+        </div>
+        <div class="battle-info">
+          <div>
+            <div class="battle-source">${b.source || src.label}</div>
+            <div class="battle-title">${b.title || b.url}</div>
+          </div>
+          <div class="battle-stats">
+            <span class="battle-stat"><i class="ti ti-message"></i> ${commentCount} comment${commentCount !== 1 ? 's' : ''}</span>
+            <span class="battle-stat"><i class="ti ti-clock"></i> ${timeAgo(b.created_at)}</span>
+            ${isHot ? '<span class="battle-hot"><i class="ti ti-flame"></i> Hot</span>' : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
-// ── LANDING ──
-function pasteExample(url) {
-  document.getElementById('url-input').value = url;
-  loadThread();
-}
-function scrollHow() { document.getElementById('how').scrollIntoView({ behavior: 'smooth' }); }
-function goHome() {
-  document.getElementById('thread').classList.remove('active');
-  document.getElementById('landing').style.display = 'block';
-  document.getElementById('url-input').value = '';
-  currentBattle = null;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function switchTab(tab) {
+  browseTab = tab;
+  document.getElementById('tab-hot').classList.toggle('active', tab === 'hot');
+  document.getElementById('tab-new').classList.toggle('active', tab === 'new');
+  loadBrowse();
 }
 
-// ── THREAD ──
+async function openBattle(battleId, encodedUrl) {
+  prevView = 'browse';
+  const url = decodeURIComponent(encodedUrl);
+  const { data: battle } = await sb.from('battles').select('*').eq('id', battleId).single();
+  if (!battle) return;
+  currentBattle = battle;
+  renderThreadHeader(battle, url);
+  showView('thread');
+  renderCommentArea();
+  await loadComments();
+}
+
+// THREAD
+function pasteExample(url) { document.getElementById('url-input').value = url; loadThread(); }
+
 async function loadThread() {
   const raw = document.getElementById('url-input').value.trim();
   if (!raw) return;
+  prevView = 'home';
+
   const url = normalizeUrl(raw);
   const hash = await hashUrl(url);
   const src = sourceFromUrl(url);
 
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('thread').classList.add('active');
+  // Show thread view immediately with loading state
+  showView('thread');
   document.getElementById('thread-icon').textContent = src.icon;
+  document.getElementById('thread-thumb').innerHTML = `<span id="thread-icon">${src.icon}</span>`;
   document.getElementById('thread-source').textContent = src.label;
-  document.getElementById('thread-title').textContent = url;
+  document.getElementById('thread-title').textContent = 'Loading…';
   document.getElementById('thread-url').textContent = url;
-  document.getElementById('comments-list').innerHTML = '<div class="loading-comments"><i class="ti ti-loader-2"></i> Loading battle…</div>';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('comments-list').innerHTML = '<div class="loading-msg"><i class="ti ti-loader-2"></i> Loading battle…</div>';
 
-  // Check if battle exists
-  let { data: battle, error } = await sb.from('battles').select('*').eq('url_hash', hash).single();
+  // Fetch OG data and check/create battle in parallel
+  const [ogData, existingBattle] = await Promise.all([
+    fetchOG(url),
+    sb.from('battles').select('*').eq('url_hash', hash).single().then(r => r.data)
+  ]);
+
+  let battle = existingBattle;
 
   if (!battle) {
-    // Create new battle
-    const { data: newBattle, error: createError } = await sb.from('battles').insert({
-      url, url_hash: hash, title: url, source: src.label
+    const { data: newBattle } = await sb.from('battles').insert({
+      url, url_hash: hash,
+      title: ogData?.title || url,
+      source: ogData?.siteName || src.label,
+      og_image: ogData?.image || null,
+      og_description: ogData?.description || null
     }).select().single();
-    if (createError) { showToast('Error creating battle', 'error'); return; }
     battle = newBattle;
     showToast('New battle started!');
   } else {
-    showToast('Joined existing battle with ' + (battle.comment_count || 'existing') + ' comments');
+    showToast('Joined existing battle!');
   }
 
   currentBattle = battle;
-  document.getElementById('thread-title').textContent = battle.title || url;
-
+  renderThreadHeader(battle, url, ogData, src);
   renderCommentArea();
   await loadComments();
+}
+
+function renderThreadHeader(battle, url, ogData, src) {
+  const s = src || sourceFromUrl(url || battle.url);
+  const img = battle.og_image || ogData?.image;
+  const title = battle.title || ogData?.title || url || battle.url;
+  const source = battle.source || ogData?.siteName || s.label;
+
+  const thumbEl = document.getElementById('thread-thumb');
+  if (img) {
+    thumbEl.innerHTML = `<img src="${img}" alt="" onerror="this.parentElement.innerHTML='<span>${s.icon}</span>'">`;
+  } else {
+    thumbEl.innerHTML = `<span>${s.icon}</span>`;
+  }
+  document.getElementById('thread-source').textContent = source;
+  document.getElementById('thread-title').textContent = title;
+  document.getElementById('thread-url').textContent = url || battle.url;
 }
 
 async function loadComments() {
@@ -463,32 +608,22 @@ async function loadComments() {
 function renderTopTakes(comments) {
   const pos = comments.filter(c => c.sentiment === 'pos').sort((a,b) => score(b) - score(a))[0];
   const neg = comments.filter(c => c.sentiment === 'neg').sort((a,b) => score(b) - score(a))[0];
-
-  const posEl = document.getElementById('top-pos-content');
-  const negEl = document.getElementById('top-neg-content');
-
-  if (pos) {
-    posEl.innerHTML = `<div class="take-text" style="color:var(--teal-deeper)">${pos.content}</div><div class="take-meta">by ${pos.username} · score ${score(pos)}</div>`;
-  } else {
-    posEl.innerHTML = `<div class="take-empty">No positive comments yet — be the first!</div>`;
-  }
-  if (neg) {
-    negEl.innerHTML = `<div class="take-text" style="color:var(--coral-deeper)">${neg.content}</div><div class="take-meta">by ${neg.username} · score ${score(neg)}</div>`;
-  } else {
-    negEl.innerHTML = `<div class="take-empty">No critical comments yet — be the first!</div>`;
-  }
+  document.getElementById('top-pos-content').innerHTML = pos
+    ? `<div class="take-text" style="color:var(--teal-deeper)">${pos.content}</div><div class="take-meta">by ${pos.username} · score ${score(pos)}</div>`
+    : `<div class="take-empty">No positive comments yet — be the first!</div>`;
+  document.getElementById('top-neg-content').innerHTML = neg
+    ? `<div class="take-text" style="color:var(--coral-deeper)">${neg.content}</div><div class="take-meta">by ${neg.username} · score ${score(neg)}</div>`
+    : `<div class="take-empty">No critical comments yet — be the first!</div>`;
 }
 
 function renderComments(comments) {
   const sorted = [...comments].sort((a,b) => score(b) - score(a));
   document.getElementById('comments-count').textContent = sorted.length + ' comment' + (sorted.length !== 1 ? 's' : '') + ' · sorted by conviction';
   renderTopTakes(comments);
-
   if (sorted.length === 0) {
-    document.getElementById('comments-list').innerHTML = '<div class="loading-comments">No comments yet. Be the first to take a side!</div>';
+    document.getElementById('comments-list').innerHTML = '<div class="loading-msg">No comments yet. Be the first to take a side!</div>';
     return;
   }
-
   document.getElementById('comments-list').innerHTML = sorted.map(c => `
     <div class="comment">
       <div class="av">${initials(c.username)}</div>
@@ -546,61 +681,34 @@ function setSentiment(s) {
 
 async function postComment() {
   const text = document.getElementById('new-comment').value.trim();
-  if (!text) return;
-  if (!currentBattle) return;
-
+  if (!text || !currentBattle) return;
   const btn = document.getElementById('post-btn');
-  btn.disabled = true;
-  btn.textContent = 'Posting…';
-
+  btn.disabled = true; btn.textContent = 'Posting…';
   const username = currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'anon';
-
-  const { error } = await sb.from('comments').insert({
-    battle_id: currentBattle.id,
-    user_id: currentUser.id,
-    username,
-    content: text,
-    sentiment: currentSentiment
-  });
-
-  if (error) {
-    showToast('Error posting comment', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Post comment';
-    return;
-  }
-
+  const { error } = await sb.from('comments').insert({ battle_id: currentBattle.id, user_id: currentUser.id, username, content: text, sentiment: currentSentiment });
+  if (error) { showToast('Error posting comment', 'error'); btn.disabled = false; btn.textContent = 'Post comment'; return; }
   document.getElementById('new-comment').value = '';
-  btn.disabled = false;
-  btn.textContent = 'Post comment';
+  btn.disabled = false; btn.textContent = 'Post comment';
   showToast('Comment posted!');
   await loadComments();
 }
 
 async function freeVote(commentId, dir, btnEl) {
   if (!currentUser) { showModal('signup'); return; }
-  // Optimistic UI
   const countEl = document.getElementById('vc-' + commentId);
   if (countEl) countEl.textContent = parseInt(countEl.textContent) + dir;
-  // Update DB
-  if (dir === 1) {
-    await sb.from('comments').update({ free_up: sb.rpc ? undefined : undefined }).eq('id', commentId);
-    await sb.rpc('increment_vote', { row_id: commentId, col: 'free_up' }).catch(() => {});
-  } else {
-    await sb.rpc('increment_vote', { row_id: commentId, col: 'free_down' }).catch(() => {});
-  }
+  btnEl.classList.toggle(dir === 1 ? 'up-active' : 'down-active');
   showToast(dir === 1 ? 'Upvoted!' : 'Downvoted!');
 }
 
-// ── ZAP ──
+// ZAP
 function openZap(commentId, username, preview) {
   if (!currentUser) { showModal('signup'); return; }
-  zapTarget = commentId;
-  zapAmt = 1;
+  zapTarget = commentId; zapAmt = 1;
   document.getElementById('zap-modal-inner').innerHTML = `
     <button class="close-btn" onclick="closeOverlay('zap-overlay')"><i class="ti ti-x"></i></button>
     <div id="zap-form">
-      <h2 style="display:flex;align-items:center;gap:8px"><i class="ti ti-bolt" style="color:var(--amber)"></i> Zap this comment</h2>
+      <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="ti ti-bolt" style="color:var(--amber)"></i> Zap this comment</h2>
       <p class="modal-sub">Zaps count 10× more than free votes and go directly to the commenter via Lightning.</p>
       <div style="background:var(--surface-2);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text-2);margin-bottom:1.25rem;border:0.5px solid var(--border);line-height:1.5">"${preview}…"</div>
       <div class="amount-grid">
@@ -621,9 +729,9 @@ function openZap(commentId, username, preview) {
           <div class="split-seg" style="width:5%;background:var(--purple)"></div>
         </div>
         <div class="split-rows">
-          <div class="split-row"><div class="split-row-left"><span class="split-dot" style="background:var(--teal)"></span>${username} (commenter)</div><div class="split-row-right" id="val-commenter">$0.85 <span class="sats-label">2,890 sats</span></div></div>
-          <div class="split-row"><div class="split-row-left"><span class="split-dot" style="background:var(--amber)"></span>Commenteers</div><div class="split-row-right" id="val-platform">$0.10 <span class="sats-label">340 sats</span></div></div>
-          <div class="split-row"><div class="split-row-left"><span class="split-dot" style="background:var(--purple)"></span>Site owner <span style="font-size:11px;color:var(--text-3)">(if embedded)</span></div><div class="split-row-right" id="val-site">$0.05 <span class="sats-label">170 sats</span></div></div>
+          <div class="split-row-z"><div class="split-row-left"><span class="split-dot" style="background:var(--teal)"></span>${username} (commenter)</div><div class="split-row-right" id="val-commenter">$0.85 <span class="sats-label">2,890 sats</span></div></div>
+          <div class="split-row-z"><div class="split-row-left"><span class="split-dot" style="background:var(--amber)"></span>Commenteers</div><div class="split-row-right" id="val-platform">$0.10 <span class="sats-label">340 sats</span></div></div>
+          <div class="split-row-z"><div class="split-row-left"><span class="split-dot" style="background:var(--purple)"></span>Site owner <span style="font-size:11px;color:var(--text-3)">(if embedded)</span></div><div class="split-row-right" id="val-site">$0.05 <span class="sats-label">170 sats</span></div></div>
           <div class="split-total"><span>Total</span><span id="val-total">$1.00 · 3,400 sats</span></div>
         </div>
       </div>
@@ -646,45 +754,26 @@ function openZap(commentId, username, preview) {
 }
 
 function updateSplit() {
-  const c = zapAmt * 0.85, p = zapAmt * 0.10, s = zapAmt * 0.05;
+  const c = zapAmt*0.85, p = zapAmt*0.10, s = zapAmt*0.05;
   const el = id => document.getElementById(id);
   if (!el('val-commenter')) return;
-  el('val-commenter').innerHTML = fmt(c) + ' <span class="sats-label">' + fmtSats(c) + '</span>';
-  el('val-platform').innerHTML = fmt(p) + ' <span class="sats-label">' + fmtSats(p) + '</span>';
-  el('val-site').innerHTML = fmt(s) + ' <span class="sats-label">' + fmtSats(s) + '</span>';
-  el('val-total').textContent = fmt(zapAmt) + ' · ' + fmtSats(zapAmt);
-  el('zap-confirm-label').textContent = 'Zap ' + fmt(zapAmt) + ' via Lightning';
+  el('val-commenter').innerHTML = fmt(c)+' <span class="sats-label">'+fmtSats(c)+'</span>';
+  el('val-platform').innerHTML = fmt(p)+' <span class="sats-label">'+fmtSats(p)+'</span>';
+  el('val-site').innerHTML = fmt(s)+' <span class="sats-label">'+fmtSats(s)+'</span>';
+  el('val-total').textContent = fmt(zapAmt)+' · '+fmtSats(zapAmt);
+  el('zap-confirm-label').textContent = 'Zap '+fmt(zapAmt)+' via Lightning';
   if (el('s-commenter')) { el('s-commenter').textContent = fmt(c); el('s-platform').textContent = fmt(p); el('s-site').textContent = fmt(s); }
 }
-
-function selectAmt(btn, a) {
-  zapAmt = a;
-  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('custom-amt').value = '';
-  updateSplit();
-}
-function setCustomAmt(val) {
-  zapAmt = Math.max(1, parseInt(val) || 1);
-  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('selected'));
-  updateSplit();
-}
-
+function selectAmt(btn, a) { zapAmt=a; document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('custom-amt').value=''; updateSplit(); }
+function setCustomAmt(val) { zapAmt=Math.max(1,parseInt(val)||1); document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('selected')); updateSplit(); }
 async function confirmZap(username) {
-  // Update zap count in DB
-  await sb.from('comments').update({
-    zap_count: sb.raw ? undefined : undefined,
-    zap_usd: sb.raw ? undefined : undefined
-  }).eq('id', zapTarget).catch(() => {});
-
-  document.getElementById('zap-form').style.display = 'none';
+  document.getElementById('zap-form').style.display='none';
   document.getElementById('zap-success').classList.add('show');
-  updateSplit();
-  showToast('⚡ Zapped!');
+  updateSplit(); showToast('⚡ Zapped!');
   setTimeout(() => loadComments(), 500);
 }
 
-// ── AUTH ──
+// AUTH
 function showModal(type) {
   const m = document.getElementById('auth-modal');
   if (type === 'signup') {
@@ -725,19 +814,11 @@ async function doSignup() {
   const username = document.getElementById('su-user').value.trim();
   const email = document.getElementById('su-email').value.trim();
   const password = document.getElementById('su-pass').value;
-  const errEl = document.getElementById('auth-error');
   const btn = document.getElementById('su-btn');
-
   if (!username || !email || !password) { showAuthError('Please fill in all fields.'); return; }
   if (password.length < 8) { showAuthError('Password must be at least 8 characters.'); return; }
-
   btn.disabled = true; btn.textContent = 'Creating account…';
-
-  const { error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { username } }
-  });
-
+  const { error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
   if (error) { showAuthError(error.message); btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> Create account'; return; }
   showModal('verify');
 }
@@ -746,26 +827,16 @@ async function doLogin() {
   const email = document.getElementById('li-email').value.trim();
   const password = document.getElementById('li-pass').value;
   const btn = document.getElementById('li-btn');
-
   if (!email || !password) { showAuthError('Please fill in all fields.'); return; }
-
   btn.disabled = true; btn.textContent = 'Signing in…';
-
   const { error } = await sb.auth.signInWithPassword({ email, password });
-
   if (error) { showAuthError(error.message); btn.disabled = false; btn.innerHTML = '<i class="ti ti-login"></i> Sign in'; return; }
   closeOverlay('auth-overlay');
   showToast('Welcome back!');
   if (currentBattle) renderCommentArea();
 }
 
-function showAuthError(msg) {
-  const el = document.getElementById('auth-error');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add('show');
-}
-
+function showAuthError(msg) { const el = document.getElementById('auth-error'); if (!el) return; el.textContent = msg; el.classList.add('show'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
 function overlayClick(e, id) { if (e.target.id === id) closeOverlay(id); }
 </script>
