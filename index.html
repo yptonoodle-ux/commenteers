@@ -168,7 +168,7 @@ a{color:inherit;text-decoration:none}
 .sbadge.neg{background:var(--coral-light);color:var(--coral-deeper)}
 .comment-text{font-size:14px;line-height:1.6;margin-bottom:10px}
 .vote-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.vote-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:var(--r);border:.5px solid var(--border-strong);background:transparent;cursor:pointer;font-size:12px;color:var(--text-2);font-family:inherit;transition:all .15s}
+.vote-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:4px 9px;border-radius:var(--r);border:.5px solid var(--border-strong);background:transparent;cursor:pointer;font-size:14px;min-width:32px;color:var(--text-2);font-family:inherit;transition:all .15s}
 .vote-btn:hover{background:var(--surface-2)}
 .vote-btn.up-active{background:var(--teal-light);border-color:#5DCAA5;color:var(--teal-deeper)}
 .vote-btn.down-active{background:var(--coral-light);border-color:#F0997B;color:var(--coral-deeper)}
@@ -380,6 +380,7 @@ let zapAmt = 1;
 let currentInvoice = null;
 let browseTab = 'hot';
 let prevView = 'home';
+let myVotes = {};
 const SAT_RATE = 3400;
 
 // ── INIT ──
@@ -649,6 +650,11 @@ function setThreadHeader({ title, source, url, icon, image }) {
 async function loadComments() {
   if (!currentBattle) return;
   const { data: comments } = await sb.from('comments').select('*').eq('battle_id', currentBattle.id).order('created_at', { ascending: false });
+  myVotes = {};
+  if (currentUser && comments?.length) {
+    const { data: votes } = await sb.from('votes').select('comment_id, direction').eq('user_id', currentUser.id).in('comment_id', comments.map(c => c.id));
+    (votes || []).forEach(v => myVotes[v.comment_id] = v.direction);
+  }
   renderComments(comments || []);
 }
 
@@ -682,9 +688,9 @@ function renderComments(comments) {
         </div>
         <div class="comment-text">${c.content}</div>
         <div class="vote-row">
-          <button class="vote-btn" onclick="freeVote('${c.id}',1,this)"><i class="ti ti-arrow-up"></i></button>
+          <button class="vote-btn ${myVotes[c.id] === 1 ? 'up-active' : ''}" onclick="freeVote('${c.id}',1,this)" title="Upvote">▲</button>
           <span class="vote-count" id="vc-${c.id}">${c.free_up - c.free_down}</span>
-          <button class="vote-btn" onclick="freeVote('${c.id}',-1,this)"><i class="ti ti-arrow-down"></i></button>
+          <button class="vote-btn ${myVotes[c.id] === -1 ? 'down-active' : ''}" onclick="freeVote('${c.id}',-1,this)" title="Downvote">▼</button>
           <div class="vdivider"></div>
           <button class="zap-btn" onclick="openZap('${c.id}','${c.username}','${c.content.replace(/'/g,"\\'").slice(0,80)}')">
             <i class="ti ti-bolt"></i> ${c.zap_count} zap${c.zap_count!==1?'s':''} · $${c.zap_usd}
