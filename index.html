@@ -753,8 +753,12 @@ async function publishToNostr({ content, battleUrl, battleTitle, username, comme
       body: JSON.stringify({ content, battleUrl, battleTitle, username, commentId, sentiment })
     });
     const data = await res.json();
-    console.log('Nostr result:', data);
-    if (data.successCount > 0) showToast('⚡ Published to ' + data.successCount + ' Nostr relays!');
+    if (data.successCount > 0) {
+      showToast('⚡ Published to ' + data.successCount + ' Nostr relays!');
+    }
+    if (data.eventId && commentId) {
+      await sb.from('comments').update({ nostr_event_id: data.eventId }).eq('id', commentId);
+    }
   } catch (e) {
     console.warn('Nostr publish failed:', e);
   }
