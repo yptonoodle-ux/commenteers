@@ -450,7 +450,7 @@ function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show' + (type ? ' ' + type : '');
-  setTimeout(() => t.className = 'toast', 3000);
+  setTimeout(() => t.className = 'toast', 8000);
 }
 
 // ── VIEWS ──
@@ -730,8 +730,6 @@ async function postComment() {
   if (error) { showToast('Error posting', 'error'); btn.disabled = false; btn.textContent = 'Post comment'; return; }
   document.getElementById('new-comment').value = '';
   btn.disabled = false; btn.textContent = 'Post comment';
-  showToast('Comment posted! v3');
-
   try {
     await publishToNostr({
       content: text,
@@ -745,6 +743,7 @@ async function postComment() {
     showToast('Nostr call failed: ' + e.message, 'error');
   }
 
+  showToast('Comment posted! v3');
   await loadComments();
 }
 
