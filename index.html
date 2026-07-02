@@ -730,7 +730,7 @@ async function postComment() {
   if (error) { showToast('Error posting', 'error'); btn.disabled = false; btn.textContent = 'Post comment'; return; }
   document.getElementById('new-comment').value = '';
   btn.disabled = false; btn.textContent = 'Post comment';
-  showToast('Comment posted!');
+  showToast('Comment posted! v3');
 
   // Publish to Nostr in background
   publishToNostr({
