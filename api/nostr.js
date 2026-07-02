@@ -35,7 +35,8 @@ export default async function handler(req, res) {
       content: `${sentimentLabel} on "${battleTitle || battleUrl}"\n\n${content}\n\n— posted by ${username} on Commenteers\n${battleUrl}`,
     }, privateKey);
 
-    const { Relay } = await import('nostr-tools/relay');
+    const eventJson = JSON.stringify(['EVENT', event]);
+
     const relayUrls = [
       'wss://relay.damus.io',
       'wss://nos.lol',
@@ -43,17 +44,30 @@ export default async function handler(req, res) {
       'wss://relay.nostr.band',
     ];
 
-    const results = await Promise.all(relayUrls.map(async (url) => {
-      try {
-        const relay = await Relay.connect(url);
-        await relay.publish(event);
-        relay.close();
-        return { relay: url, ok: true };
-      } catch(e) {
-        return { relay: url, ok: false, reason: e.message };
-      }
-    }));
+    const publishToRelay = (relayUrl) => new Promise((resolve) => {
+      const ws = new (require('ws'))((relayUrl));
+      const timeout = setTimeout(() => {
+        ws.terminate();
+        resolve({ relay: relayUrl, ok: false, reason: 'timeout' });
+      }, 6000);
+      ws.on('open', () => ws.send(eventJson));
+      ws.on('message', (data) => {
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg[0] === 'OK') {
+            clearTimeout(timeout);
+            ws.terminate();
+            resolve({ relay: relayUrl, ok: msg[2], reason: msg[3] });
+          }
+        } catch { resolve({ relay: relayUrl, ok: false, reason: 'parse error' }); }
+      });
+      ws.on('error', (e) => {
+        clearTimeout(timeout);
+        resolve({ relay: relayUrl, ok: false, reason: e.message });
+      });
+    });
 
+    const results = await Promise.all(relayUrls.map(publishToRelay));
     const successCount = results.filter(r => r.ok).length;
     return res.status(200).json({ eventId: event.id, pubkey: event.pubkey, successCount, results });
 
