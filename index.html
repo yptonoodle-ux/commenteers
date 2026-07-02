@@ -478,6 +478,7 @@ function updateNav() {
         <span style="font-size:13px">${name}</span>
         <i class="ti ti-chevron-down" style="font-size:13px;color:var(--text-3)"></i>
         <div class="user-menu" id="user-menu">
+          <button onclick="showProfileModal()"><i class="ti ti-settings"></i> Settings</button>
           <button onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
         </div>
       </div>`;
@@ -1001,6 +1002,40 @@ async function doLogin() {
   closeOverlay('auth-overlay');
   showToast('Welcome back!');
   if (currentBattle) renderCommentArea();
+}
+
+async function showProfileModal() {
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+  const m = document.getElementById('auth-modal');
+  m.innerHTML = `
+    <button class="close-btn" onclick="closeOverlay('auth-overlay')"><i class="ti ti-x"></i></button>
+    <h2>Your settings</h2>
+    <p class="modal-sub">Add a Lightning address to receive zaps when people boost your comments. You keep 90% of every zap.</p>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="field">
+      <label>Lightning address</label>
+      <input type="text" id="pr-lightning" placeholder="you@walletofsatoshi.com" value="${profile?.lightning_address || ''}" />
+    </div>
+    <button class="modal-btn" id="pr-btn" onclick="saveProfile()"><i class="ti ti-check"></i> Save</button>
+  `;
+  document.getElementById('auth-overlay').classList.add('open');
+}
+
+async function saveProfile() {
+  const lightning = document.getElementById('pr-lightning').value.trim();
+  const btn = document.getElementById('pr-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const username = currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'anon';
+  const { error } = await sb.from('profiles').upsert({
+    id: currentUser.id,
+    username,
+    lightning_address: lightning || null
+  });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-check"></i> Save';
+  if (error) { showAuthError(error.message); return; }
+  closeOverlay('auth-overlay');
+  showToast('Settings saved!');
 }
 
 function showAuthError(msg) { const el=document.getElementById('auth-error'); if(!el)return; el.textContent=msg; el.classList.add('show'); }
