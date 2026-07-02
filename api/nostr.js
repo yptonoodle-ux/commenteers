@@ -1,7 +1,7 @@
 import { finalizeEvent, nip19, getPublicKey } from 'nostr-tools';
 import WebSocket from 'ws';
 
-export const config = { runtime: 'nodejs18.x' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
