@@ -1,4 +1,4 @@
-import { finalizeEvent, nip19 } from 'nostr-tools';
+import { finalizeEvent, nip19, getPublicKey } from 'nostr-tools';
 
 export const config = { runtime: 'nodejs18.x' };
 
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       // treat as raw hex
       privateKey = Buffer.from(nsec, 'hex');
     }
-    console.log('privkey length:', privateKey.length, 'pubkey will be:', nip19.npubEncode(require('nostr-tools').getPublicKey(privateKey)));
+    console.log('privkey length:', privateKey.length, 'pubkey will be:', nip19.npubEncode(getPublicKey(privateKey)));
     const sentimentLabel = sentiment === 'pos' ? '👍 Positive take' : '👎 Critical take';
 
     const event = finalizeEvent({
