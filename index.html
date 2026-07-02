@@ -762,6 +762,7 @@ async function publishToNostr({ content, battleUrl, battleTitle, username, comme
     }
   } catch (e) {
     console.warn('Nostr publish failed:', e);
+    throw e;
   }
 }
 
