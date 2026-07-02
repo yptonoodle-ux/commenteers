@@ -916,7 +916,7 @@ async function confirmZap(username) {
       <button class="zap-cancel" onclick="closeOverlay('zap-overlay')">Cancel</button>
     `;
     const qr = qrcode(0, 'M');
-    qr.addData(data.recipientInvoice.toUpperCase());
+    qr.addData('lightning:' + data.recipientInvoice);
     qr.make();
     document.getElementById('zap-qr-container').innerHTML = qr.createImgTag(5, 8);
     pollPayment(data.verifyUrl);
