@@ -48,6 +48,7 @@ export default async function handler(req, res) {
       recipientMsat,
       commenteersMsat: commentersMsat2,
       recipientAddress: recipientLightningAddress,
+      verifyUrl: invoiceData.verify || null,
     });
 
   } catch(e) {

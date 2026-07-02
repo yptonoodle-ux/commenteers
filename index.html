@@ -912,13 +912,14 @@ async function confirmZap(username) {
       <div style="display:flex;justify-content:center;padding:1rem;background:#fff;border-radius:12px;margin-bottom:1rem">
         <div id="zap-qr-container"></div>
       </div>
-      <button class="zap-confirm" onclick="paidManually()"><i class="ti ti-check"></i> I've paid</button>
+      <button class="zap-confirm" disabled><i class="ti ti-loader-2"></i> Waiting for payment…</button>
       <button class="zap-cancel" onclick="closeOverlay('zap-overlay')">Cancel</button>
     `;
     const qr = qrcode(0, 'M');
     qr.addData(data.recipientInvoice.toUpperCase());
     qr.make();
     document.getElementById('zap-qr-container').innerHTML = qr.createImgTag(5, 8);
+    pollPayment(data.verifyUrl);
 
   } catch(e) {
     showToast('Zap error: ' + e.message, 'error');
@@ -937,11 +938,23 @@ async function recordZap() {
   loadComments();
 }
 
-async function paidManually() {
-  await recordZap();
-  document.getElementById('zap-form').style.display = 'none';
-  document.getElementById('zap-success').classList.add('show');
-  showToast('⚡ Zap recorded!');
+async function pollPayment(verifyUrl) {
+  if (!verifyUrl) return;
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch(verifyUrl);
+      const data = await res.json();
+      if (data.settled === true) {
+        clearInterval(interval);
+        await recordZap();
+        document.getElementById('zap-form').style.display = 'none';
+        document.getElementById('zap-success').classList.add('show');
+        showToast('⚡ Payment confirmed!');
+      }
+    } catch(e) {}
+  }, 3000);
+  // Stop polling after 5 minutes
+  setTimeout(() => clearInterval(interval), 300000);
 }
 
 // ── AUTH ──
