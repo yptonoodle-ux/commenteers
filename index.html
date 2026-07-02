@@ -370,6 +370,7 @@ let currentBattle = null;
 let currentSentiment = 'pos';
 let zapTarget = null;
 let zapAmt = 1;
+let currentInvoice = null;
 let browseTab = 'hot';
 let prevView = 'home';
 const SAT_RATE = 3400;
@@ -912,13 +913,17 @@ async function confirmZap(username) {
       <div style="display:flex;justify-content:center;padding:1rem;background:#fff;border-radius:12px;margin-bottom:1rem">
         <div id="zap-qr-container"></div>
       </div>
+      <button class="zap-cancel" style="margin-bottom:8px" onclick="navigator.clipboard.writeText(currentInvoice).then(()=>showToast('Invoice copied!'))">📋 Copy invoice instead</button>
       <button class="zap-confirm" disabled><i class="ti ti-loader-2"></i> Waiting for payment…</button>
       <button class="zap-cancel" onclick="closeOverlay('zap-overlay')">Cancel</button>
     `;
+    currentInvoice = data.recipientInvoice;
     const qr = qrcode(0, 'M');
     qr.addData('lightning:' + data.recipientInvoice);
     qr.make();
-    document.getElementById('zap-qr-container').innerHTML = qr.createImgTag(5, 8);
+    document.getElementById('zap-qr-container').innerHTML = qr.createImgTag(6, 12);
+    const qrImg = document.querySelector('#zap-qr-container img');
+    if (qrImg) { qrImg.style.width = '280px'; qrImg.style.height = '280px'; qrImg.style.imageRendering = 'pixelated'; }
     pollPayment(data.verifyUrl);
 
   } catch(e) {
