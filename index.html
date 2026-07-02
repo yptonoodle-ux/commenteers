@@ -809,14 +809,12 @@ function openZap(commentId, username, preview) {
       <div class="split-card">
         <div class="split-title">How your zap is split</div>
         <div class="split-bar">
-          <div class="split-seg" style="width:85%;background:var(--teal)"></div>
+          <div class="split-seg" style="width:90%;background:var(--teal)"></div>
           <div class="split-seg" style="width:10%;background:var(--amber)"></div>
-          <div class="split-seg" style="width:5%;background:var(--purple)"></div>
         </div>
         <div class="split-rows">
           <div class="split-row-z"><div class="split-row-left"><span class="split-dot" style="background:var(--teal)"></span>${username} (commenter)</div><div class="split-row-right" id="val-commenter"></div></div>
           <div class="split-row-z"><div class="split-row-left"><span class="split-dot" style="background:var(--amber)"></span>Commenteers</div><div class="split-row-right" id="val-platform"></div></div>
-          <div class="split-row-z"><div class="split-row-left"><span class="split-dot" style="background:var(--purple)"></span>Site owner <span style="font-size:11px;color:var(--text-3)">(if embedded)</span></div><div class="split-row-right" id="val-site"></div></div>
           <div class="split-total"><span>Total</span><span id="val-total"></span></div>
         </div>
       </div>
@@ -831,7 +829,6 @@ function openZap(commentId, username, preview) {
       <div class="zap-split-summary">
         <div class="zss-item"><div class="zss-label">To commenter</div><div class="zss-val" id="s-commenter"></div></div>
         <div class="zss-item"><div class="zss-label">To Commenteers</div><div class="zss-val" id="s-platform"></div></div>
-        <div class="zss-item"><div class="zss-label">To site owner</div><div class="zss-val" id="s-site"></div></div>
       </div>
     </div>`;
   document.getElementById('zap-overlay').classList.add('open');
@@ -839,15 +836,14 @@ function openZap(commentId, username, preview) {
 }
 
 function updateSplit() {
-  const c = zapAmt*0.85, p = zapAmt*0.10, s = zapAmt*0.05;
+  const c = zapAmt*0.90, p = zapAmt*0.10;
   const el = id => document.getElementById(id);
   if (!el('val-commenter')) return;
   el('val-commenter').innerHTML = fmt(c)+' <span class="sats-label">'+fmtSats(c)+'</span>';
   el('val-platform').innerHTML = fmt(p)+' <span class="sats-label">'+fmtSats(p)+'</span>';
-  el('val-site').innerHTML = fmt(s)+' <span class="sats-label">'+fmtSats(s)+'</span>';
   el('val-total').textContent = fmt(zapAmt)+' · '+fmtSats(zapAmt);
   el('zap-confirm-label').textContent = 'Zap '+fmt(zapAmt)+' via Lightning';
-  if (el('s-commenter')) { el('s-commenter').textContent=fmt(c); el('s-platform').textContent=fmt(p); el('s-site').textContent=fmt(s); }
+  if (el('s-commenter')) { el('s-commenter').textContent=fmt(c); el('s-platform').textContent=fmt(p); }
 }
 function selectAmt(btn,a){ zapAmt=a; document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('custom-amt').value=''; updateSplit(); }
 function setCustomAmt(val){ zapAmt=Math.max(1,parseInt(val)||1); document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('selected')); updateSplit(); }

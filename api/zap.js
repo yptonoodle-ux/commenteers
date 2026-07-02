@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     const amountMsat = Math.floor(amount * 1000);
     const commenteersMsat = Math.floor(amountMsat * 0.10);
-    const recipientMsat = Math.floor(amountMsat * 0.85);
+    const recipientMsat = Math.floor(amountMsat * 0.90);
 
     // Fetch LNURL-pay info for recipient
     const [recipientUser, recipientDomain] = recipientLightningAddress.split('@');
