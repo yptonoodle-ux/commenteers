@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
 :root {
   --bg:#f7f7f5;--surface:#fff;--surface-2:#f1f0ed;
@@ -910,12 +910,15 @@ async function confirmZap(username) {
       <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="ti ti-bolt" style="color:var(--amber)"></i> Scan to pay</h2>
       <p class="modal-sub">Scan with any Lightning wallet to send ${sats.toLocaleString()} sats to ${username}</p>
       <div style="display:flex;justify-content:center;padding:1rem;background:#fff;border-radius:12px;margin-bottom:1rem">
-        <canvas id="zap-qr"></canvas>
+        <div id="zap-qr-container"></div>
       </div>
       <button class="zap-confirm" onclick="paidManually()"><i class="ti ti-check"></i> I've paid</button>
       <button class="zap-cancel" onclick="closeOverlay('zap-overlay')">Cancel</button>
     `;
-    QRCode.toCanvas(document.getElementById('zap-qr'), data.recipientInvoice, { width: 250 });
+    const qr = qrcode(0, 'M');
+    qr.addData(data.recipientInvoice.toUpperCase());
+    qr.make();
+    document.getElementById('zap-qr-container').innerHTML = qr.createImgTag(5, 8);
 
   } catch(e) {
     showToast('Zap error: ' + e.message, 'error');
