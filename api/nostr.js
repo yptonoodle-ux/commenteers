@@ -36,6 +36,12 @@ export default async function handler(req, res) {
       content: `${sentimentLabel} on "${battleTitle || battleUrl}"\n\n${content}\n\n— posted by ${username} on Commenteers\n${battleUrl}`,
     }, privateKey);
 
+    console.log('event id:', event.id);
+    console.log('event pubkey:', event.pubkey);
+    console.log('event sig:', event.sig);
+    console.log('event content length:', event.content.length);
+    console.log('full event:', JSON.stringify(event));
+
     const eventJson = JSON.stringify(['EVENT', event]);
 
     const relayUrls = [
