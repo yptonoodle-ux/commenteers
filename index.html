@@ -732,15 +732,18 @@ async function postComment() {
   btn.disabled = false; btn.textContent = 'Post comment';
   showToast('Comment posted! v3');
 
-  // Publish to Nostr in background
-  publishToNostr({
-    content: text,
-    battleUrl: currentBattle.url,
-    battleTitle: currentBattle.title,
-    username,
-    commentId: data?.[0]?.id,
-    sentiment: currentSentiment
-  });
+  try {
+    await publishToNostr({
+      content: text,
+      battleUrl: currentBattle.url,
+      battleTitle: currentBattle.title,
+      username,
+      commentId: data?.[0]?.id,
+      sentiment: currentSentiment
+    });
+  } catch(e) {
+    showToast('Nostr call failed: ' + e.message, 'error');
+  }
 
   await loadComments();
 }
