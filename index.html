@@ -351,7 +351,7 @@ a{color:inherit;text-decoration:none}
 
   <footer class="footer">
     <span>Commenteers · Built on Nostr</span>
-    <span>Free speech. Permanent record. v2.0</span>
+    <span>Free speech. Permanent record.</span>
   </footer>
 </div>
 
@@ -450,7 +450,7 @@ function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show' + (type ? ' ' + type : '');
-  setTimeout(() => t.className = 'toast', 8000);
+  setTimeout(() => t.className = 'toast', 3000);
 }
 
 // ── VIEWS ──
@@ -743,6 +743,7 @@ async function postComment() {
     showToast('Nostr call failed: ' + e.message, 'error');
   }
 
+  showToast('Comment posted!');
   await loadComments();
 }
 
@@ -754,7 +755,7 @@ async function publishToNostr({ content, battleUrl, battleTitle, username, comme
       body: JSON.stringify({ content, battleUrl, battleTitle, username, commentId, sentiment })
     });
     const data = await res.json();
-    showToast('Nostr: ' + data.successCount + ' relays, id: ' + (data.eventId || 'none').slice(0,8));
+    showToast('⚡ Published to ' + data.successCount + ' Nostr relays!');
     if (data.eventId && commentId) {
       await sb.from('comments').update({ nostr_event_id: data.eventId }).eq('id', commentId);
     }
