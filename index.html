@@ -777,10 +777,38 @@ async function publishToNostr({ content, battleUrl, battleTitle, username, comme
 
 async function freeVote(commentId, dir, btnEl) {
   if (!currentUser) { showModal('signup'); return; }
-  const countEl = document.getElementById('vc-' + commentId);
-  if (countEl) countEl.textContent = parseInt(countEl.textContent) + dir;
-  btnEl.classList.toggle(dir === 1 ? 'up-active' : 'down-active');
-  showToast(dir === 1 ? 'Upvoted!' : 'Downvoted!');
+
+  // Check existing vote
+  const { data: existing } = await sb.from('votes').select('*')
+    .eq('comment_id', commentId).eq('user_id', currentUser.id).maybeSingle();
+
+  const { data: comment } = await sb.from('comments').select('free_up, free_down')
+    .eq('id', commentId).single();
+  if (!comment) return;
+
+  let newUp = comment.free_up, newDown = comment.free_down;
+
+  if (existing) {
+    if (existing.direction === dir) {
+      // Same vote again = remove vote
+      await sb.from('votes').delete().eq('id', existing.id);
+      if (dir === 1) newUp--; else newDown--;
+      showToast('Vote removed');
+    } else {
+      // Switch vote direction
+      await sb.from('votes').update({ direction: dir }).eq('id', existing.id);
+      if (dir === 1) { newUp++; newDown--; } else { newDown++; newUp--; }
+      showToast(dir === 1 ? 'Changed to upvote' : 'Changed to downvote');
+    }
+  } else {
+    // New vote
+    await sb.from('votes').insert({ comment_id: commentId, user_id: currentUser.id, direction: dir });
+    if (dir === 1) newUp++; else newDown++;
+    showToast(dir === 1 ? 'Upvoted!' : 'Downvoted!');
+  }
+
+  await sb.from('comments').update({ free_up: newUp, free_down: newDown }).eq('id', commentId);
+  await loadComments();
 }
 
 // ── SHARE ──
