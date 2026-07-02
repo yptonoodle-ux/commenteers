@@ -753,9 +753,7 @@ async function publishToNostr({ content, battleUrl, battleTitle, username, comme
       body: JSON.stringify({ content, battleUrl, battleTitle, username, commentId, sentiment })
     });
     const data = await res.json();
-    if (data.successCount > 0) {
-      showToast('⚡ Published to ' + data.successCount + ' Nostr relays!');
-    }
+    showToast('Nostr: ' + data.successCount + ' relays, id: ' + (data.eventId || 'none').slice(0,8));
     if (data.eventId && commentId) {
       await sb.from('comments').update({ nostr_event_id: data.eventId }).eq('id', commentId);
     }
