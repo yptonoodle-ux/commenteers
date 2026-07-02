@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 :root {
   --bg:#f7f7f5;--surface:#fff;--surface-2:#f1f0ed;
@@ -848,10 +849,95 @@ function updateSplit() {
 function selectAmt(btn,a){ zapAmt=a; document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('custom-amt').value=''; updateSplit(); }
 function setCustomAmt(val){ zapAmt=Math.max(1,parseInt(val)||1); document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('selected')); updateSplit(); }
 async function confirmZap(username) {
-  document.getElementById('zap-form').style.display='none';
+  const btn = document.querySelector('.zap-confirm');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> Getting invoice…';
+
+  try {
+    // Get the commenter's lightning address from their profile
+    const { data: comment } = await sb.from('comments').select('user_id').eq('id', zapTarget).single();
+    let lightningAddress = null;
+    if (comment?.user_id) {
+      const { data: profile } = await sb.from('profiles').select('lightning_address').eq('id', comment.user_id).single();
+      lightningAddress = profile?.lightning_address;
+    }
+
+    if (!lightningAddress) {
+      showToast('This commenter has no Lightning address set up', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-bolt"></i> <span id="zap-confirm-label">Zap via Lightning</span>';
+      return;
+    }
+
+    // Convert USD to sats (approximate)
+    const sats = Math.round(zapAmt * SAT_RATE);
+
+    const res = await fetch('/api/zap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: sats, recipientLightningAddress: lightningAddress, commentId: zapTarget })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      showToast('Zap failed: ' + data.error, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-bolt"></i> <span id="zap-confirm-label">Zap via Lightning</span>';
+      return;
+    }
+
+    // Try WebLN (Alby extension) first
+    if (window.webln) {
+      try {
+        await window.webln.enable();
+        await window.webln.sendPayment(data.recipientInvoice);
+        if (data.commenteersInvoice) {
+          try { await window.webln.sendPayment(data.commenteersInvoice); } catch(e) {}
+        }
+        await recordZap();
+        document.getElementById('zap-form').style.display = 'none';
+        document.getElementById('zap-success').classList.add('show');
+        showToast('⚡ Zapped via Alby!');
+        return;
+      } catch(e) {
+        // User rejected or WebLN failed — fall through to QR code
+      }
+    }
+
+    // Show QR code for manual payment
+    document.getElementById('zap-form').innerHTML = `
+      <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="ti ti-bolt" style="color:var(--amber)"></i> Scan to pay</h2>
+      <p class="modal-sub">Scan with any Lightning wallet to send ${sats.toLocaleString()} sats to ${username}</p>
+      <div style="display:flex;justify-content:center;padding:1rem;background:#fff;border-radius:12px;margin-bottom:1rem">
+        <canvas id="zap-qr"></canvas>
+      </div>
+      <button class="zap-confirm" onclick="paidManually()"><i class="ti ti-check"></i> I've paid</button>
+      <button class="zap-cancel" onclick="closeOverlay('zap-overlay')">Cancel</button>
+    `;
+    QRCode.toCanvas(document.getElementById('zap-qr'), data.recipientInvoice, { width: 250 });
+
+  } catch(e) {
+    showToast('Zap error: ' + e.message, 'error');
+    btn.disabled = false;
+  }
+}
+
+async function recordZap() {
+  const { data: comment } = await sb.from('comments').select('zap_count, zap_usd').eq('id', zapTarget).single();
+  if (comment) {
+    await sb.from('comments').update({
+      zap_count: comment.zap_count + 1,
+      zap_usd: Number(comment.zap_usd) + zapAmt
+    }).eq('id', zapTarget);
+  }
+  loadComments();
+}
+
+async function paidManually() {
+  await recordZap();
+  document.getElementById('zap-form').style.display = 'none';
   document.getElementById('zap-success').classList.add('show');
-  updateSplit(); showToast('⚡ Zapped!');
-  setTimeout(() => loadComments(), 500);
+  showToast('⚡ Zap recorded!');
 }
 
 // ── AUTH ──
