@@ -743,7 +743,6 @@ async function postComment() {
     showToast('Nostr call failed: ' + e.message, 'error');
   }
 
-  showToast('Comment posted! v3');
   await loadComments();
 }
 
