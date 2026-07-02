@@ -11,7 +11,15 @@ export default async function handler(req, res) {
     const nsec = process.env.NOSTR_NSEC;
     if (!nsec) return res.status(500).json({ error: 'No nsec configured' });
 
-    const { data: privateKey } = nip19.decode(nsec);
+    let privateKey;
+    if (nsec.startsWith('nsec1')) {
+      const decoded = nip19.decode(nsec);
+      privateKey = decoded.data;
+    } else {
+      // treat as raw hex
+      privateKey = Buffer.from(nsec, 'hex');
+    }
+    console.log('privkey length:', privateKey.length, 'pubkey will be:', nip19.npubEncode(require('nostr-tools').getPublicKey(privateKey)));
     const sentimentLabel = sentiment === 'pos' ? '👍 Positive take' : '👎 Critical take';
 
     const event = finalizeEvent({
