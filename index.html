@@ -661,11 +661,23 @@ async function loadComments() {
 function renderTopTakes(comments) {
   const pos = comments.filter(c => c.sentiment === 'pos').sort((a,b) => score(b) - score(a))[0];
   const neg = comments.filter(c => c.sentiment === 'neg').sort((a,b) => score(b) - score(a))[0];
+
+  const takeActions = (c) => `
+    <div class="vote-row" style="margin-top:10px">
+      <button class="vote-btn ${myVotes[c.id] === 1 ? 'up-active' : ''}" onclick="freeVote('${c.id}',1,this)" title="Upvote">▲</button>
+      <span class="vote-count">${c.free_up - c.free_down}</span>
+      <button class="vote-btn ${myVotes[c.id] === -1 ? 'down-active' : ''}" onclick="freeVote('${c.id}',-1,this)" title="Downvote">▼</button>
+      <div class="vdivider"></div>
+      <button class="zap-btn" onclick="openZap('${c.id}','${c.username}','${c.content.replace(/'/g,"\\'").slice(0,80)}')">
+        <i class="ti ti-bolt"></i> ${c.zap_count} · $${c.zap_usd}
+      </button>
+    </div>`;
+
   document.getElementById('top-pos-content').innerHTML = pos
-    ? `<div class="take-text" style="color:var(--teal-deeper)">${pos.content}</div><div class="take-meta">by ${pos.username} · score ${score(pos)}</div>`
+    ? `<div class="take-text" style="color:var(--teal-deeper)">${pos.content}</div><div class="take-meta">by ${pos.username} · score ${score(pos)}</div>${takeActions(pos)}`
     : `<div class="take-empty">No positive comments yet — be the first!</div>`;
   document.getElementById('top-neg-content').innerHTML = neg
-    ? `<div class="take-text" style="color:var(--coral-deeper)">${neg.content}</div><div class="take-meta">by ${neg.username} · score ${score(neg)}</div>`
+    ? `<div class="take-text" style="color:var(--coral-deeper)">${neg.content}</div><div class="take-meta">by ${neg.username} · score ${score(neg)}</div>${takeActions(neg)}`
     : `<div class="take-empty">No critical comments yet — be the first!</div>`;
 }
 
