@@ -32,7 +32,7 @@ a{color:inherit;text-decoration:none}
 /* NAV */
 .nav{position:sticky;top:0;z-index:100;background:rgba(247,247,245,.92);backdrop-filter:blur(12px);border-bottom:.5px solid var(--border);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between}
 .logo{font-size:17px;font-weight:500;letter-spacing:-.3px;cursor:pointer}
-.logo span{color:var(--teal)}
+.logo span span{color:var(--teal)}
 .nav-links{display:flex;gap:1.5rem;font-size:14px;color:var(--text-2)}
 .nav-links a{cursor:pointer;transition:color .15s}
 .nav-links a:hover{color:var(--text)}
@@ -254,7 +254,10 @@ a{color:inherit;text-decoration:none}
 <body>
 
 <nav class="nav">
-  <div class="logo" onclick="showView('home')">Comment<span>eers</span></div>
+  <div class="logo" onclick="showView('home')" style="display:flex;align-items:center;gap:8px">
+    <img src="/icon.svg" alt="" style="width:26px;height:26px;border-radius:6px" />
+    <span>Comment<span style="color:var(--teal)">eers</span></span>
+  </div>
   <div class="nav-links">
     <a onclick="showView('browse')">Browse</a>
     <a onclick="scrollHow()">How it works</a>
