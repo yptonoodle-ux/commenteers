@@ -1,4 +1,5 @@
 import { finalizeEvent, nip19, getPublicKey } from 'nostr-tools';
+import WebSocket from 'ws';
 
 export const config = { runtime: 'nodejs18.x' };
 
@@ -45,7 +46,7 @@ export default async function handler(req, res) {
     ];
 
     const publishToRelay = (relayUrl) => new Promise((resolve) => {
-      const ws = new (require('ws'))((relayUrl));
+      const ws = new WebSocket(relayUrl);
       const timeout = setTimeout(() => {
         ws.terminate();
         resolve({ relay: relayUrl, ok: false, reason: 'timeout' });
